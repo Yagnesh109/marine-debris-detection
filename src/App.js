@@ -1,23 +1,27 @@
-import logo from './logo.svg';
+import { useState } from "react";
 import './App.css';
+import MapComponent from './pages/MapComponent';
+import Dashboard from './pages/dashboard';
+import Navbar from './pages/navbar';
+import routeData from './data/solapurRoute.json';
 
 function App() {
+  const [activeTab, setActiveTab] = useState("dashboard");
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div style={{ width: "100vw", height: "100vh", overflow: "hidden" }}>
+      <Navbar activeTab={activeTab} onNavigate={setActiveTab} />
+      <div style={{ height: "calc(100% - 64px)" }}>
+        {activeTab === "maps" ? (
+          <MapComponent
+            routeData={routeData}
+            pathColor="#FF5722"
+            showMarkers={true}
+          />
+        ) : (
+          <Dashboard />
+        )}
+      </div>
     </div>
   );
 }

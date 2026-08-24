@@ -1,19 +1,16 @@
 # Debris Detector
 
+
+## Installation
+
 ```bash
 npm install
 ```
 
-## Development
+## Map Download
 
 ```bash
-npm run dev
-```
-
-## Production Build
-
-```bash
-npm run build
+npm install leaflet
 ```
 
 ## Run
@@ -22,8 +19,3 @@ npm run build
 npm start
 ```
 
-## Map Download
-
-```bash
-npm install leaflet
-```

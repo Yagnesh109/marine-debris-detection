@@ -24,4 +24,6 @@ npm start
 
 ## Map Download
 
-Map tiles are loaded online from ArcGIS. No map-download command is configured.
+```bash
+npm install leaflet
+```

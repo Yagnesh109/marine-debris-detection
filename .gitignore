@@ -17,7 +17,6 @@ coverage/
 .env
 .env.*
 !.env.example
-src/pages/config.js
 
 # Logs
 *.log
@@ -39,3 +38,11 @@ Desktop.ini
 
 # Local tool state
 *.tsbuildinfo
+
+# Python generated files
+__pycache__/
+*.py[cod]
+*.class
+
+# App generated outputs
+backend/geotag_calculated.json

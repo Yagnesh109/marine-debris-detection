@@ -9,6 +9,28 @@
   box-sizing: border-box;
 }
 
+.navbar-action {
+  height: 40px;
+  margin-left: auto;
+  padding: 0 16px;
+  border: 1px solid #2563eb;
+  border-radius: 6px;
+  background-color: #2563eb;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.navbar-action:hover:not(:disabled) {
+  background-color: #1d4ed8;
+}
+
+.navbar-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
 .navbar-tab {
   height: 40px;
   padding: 0 16px;
@@ -29,4 +51,15 @@
   border-bottom-color: #2563eb;
   color: #2563eb;
   font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .main-navbar {
+    padding: 0 8px;
+    gap: 4px;
+  }
+  .navbar-tab, .navbar-action {
+    padding: 0 8px;
+    font-size: 13px;
+  }
 }

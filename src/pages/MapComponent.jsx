@@ -35,17 +35,14 @@ const userIcon = new L.DivIcon({
   iconAnchor: [12, 12],
 });
 
-// Custom numbered marker icon
-const createNumberedIcon = (number, color = "#4285F4") =>
+const createDotIcon = (color = "#e11d48", size = 10) =>
   new L.DivIcon({
     className: "",
     html: `
-      <div style="width:26px;height:22px;border-radius:50%;background:${color};color:white;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);">
-        ${number}
-      </div>
+      <div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 5px rgba(0,0,0,0.45);"></div>
     `,
-    iconSize: [26, 26],
-    iconAnchor: [13, 13],
+    iconSize: [size + 4, size + 4],
+    iconAnchor: [(size + 4) / 2, (size + 4) / 2],
   });
 
 const mapViews = {
@@ -62,6 +59,7 @@ const MapComponent = ({
   zoom = 12,
   onLocationFound,
   onMapClick,
+  onPointClick,
   tileUrl = mapViews.satellite.tileUrl,
   attribution = mapViews.satellite.attribution,
   routeData = [],
@@ -114,11 +112,14 @@ const MapComponent = ({
 
   // Draw route path when routeData changes
   useEffect(() => {
-    if (!mapInstanceRef.current || !routeData || routeData.length < 2) return;
+    if (!mapInstanceRef.current) return;
 
     if (routeLayerGroupRef.current) {
       mapInstanceRef.current.removeLayer(routeLayerGroupRef.current);
+      routeLayerGroupRef.current = null;
     }
+
+    if (!routeData || routeData.length < 2) return;
 
     const group = L.layerGroup();
     const latLngs = routeData.map((point) => [point.lat, point.lng]);
@@ -154,21 +155,24 @@ const MapComponent = ({
 
     if (showMarkers) {
       routeData.forEach((point, index) => {
-        L.marker([point.lat, point.lng], {
-          icon: createNumberedIcon(index + 1),
-        }).addTo(group);
+        const isStart = index === 0;
+        const isEnd = index === routeData.length - 1;
+        const markerColor = isStart ? "#16a34a" : isEnd ? "#111827" : "#dc2626";
+        const markerSize = isStart || isEnd ? 12 : 8;
+        const marker = L.marker([point.lat, point.lng], {
+          icon: createDotIcon(markerColor, markerSize),
+        });
+
+        marker.on("click", (event) => {
+          L.DomEvent.stopPropagation(event);
+
+          if (onPointClick) {
+            onPointClick(point);
+          }
+        });
+
+        marker.addTo(group);
       });
-    }
-
-    const startIcon = createNumberedIcon("S", "#27ae60");
-    const endIcon = createNumberedIcon("E", "#e74c3c");
-    const startPoint = routeData[0];
-    const endPoint = routeData[routeData.length - 1];
-
-    L.marker([startPoint.lat, startPoint.lng], { icon: startIcon }).addTo(group);
-
-    if (routeData.length > 1) {
-      L.marker([endPoint.lat, endPoint.lng], { icon: endIcon }).addTo(group);
     }
 
     group.addTo(mapInstanceRef.current);
@@ -179,7 +183,7 @@ const MapComponent = ({
         padding: [40, 40],
       });
     }
-  }, [routeData, pathColor, pathWeight, pathOpacity, showMarkers, fitRouteBounds]);
+  }, [routeData, pathColor, pathWeight, pathOpacity, showMarkers, fitRouteBounds, onPointClick]);
 
   // Navigate to user's current location
   const goToMyLocation = useCallback(() => {

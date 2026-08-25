@@ -1,7 +1,7 @@
 import "./navbar.css";
 
-const Navbar = ({ activeTab, onNavigate }) => {
-  const tabs = ["Dashboard", "Maps"];
+const Navbar = ({ activeTab, onNavigate, onCalculatePositions, calculating }) => {
+  const tabs = ["Dashboard", "Maps", "Upload"];
 
   return (
     <nav className="main-navbar" aria-label="Main navigation">
@@ -21,6 +21,14 @@ const Navbar = ({ activeTab, onNavigate }) => {
           </button>
         );
       })}
+      <button
+        type="button"
+        onClick={onCalculatePositions}
+        disabled={calculating}
+        className="navbar-action"
+      >
+        {calculating ? "Calculating..." : "Calculate Position"}
+      </button>
     </nav>
   );
 };

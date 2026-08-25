@@ -19,7 +19,7 @@ export default function SidePanel({
   placeName = "",            // reverse-geocoded name
   routeInfo = null,           // { waypoints: number, distance?: string }
   userLocation = null,        // { lat, lng } from GPS
-  children,                   // slot for extra content (e.g. ImageFind)
+  children,                   // slot for extra content
   className = "",
   style = {},
 }) {
@@ -205,6 +205,17 @@ export default function SidePanel({
                   <span style={styles.statValue}>{routeInfo.distance}</span>
                 </div>
               )}
+              {routeInfo.downloadUrl && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.location.href = routeInfo.downloadUrl;
+                  }}
+                  style={styles.downloadButton}
+                >
+                  Download JSON
+                </button>
+              )}
             </Section>
           )}
 
@@ -366,5 +377,17 @@ const styles = {
     fontSize: 14,
     fontWeight: 700,
     color: "#e6edf3",
+  },
+  downloadButton: {
+    width: "100%",
+    height: 36,
+    marginTop: 12,
+    border: "1px solid #238636",
+    borderRadius: 6,
+    background: "#238636",
+    color: "#ffffff",
+    cursor: "pointer",
+    fontSize: 13,
+    fontWeight: 700,
   },
 };

@@ -1,3 +1,13 @@
+/**
+ * MapComponent.jsx
+ * 
+ * Leaflet satellite map with route drawing, numbered markers,
+ * arrow decorations, and GPS location button.
+ * 
+ * All click/location data is sent UP to the parent via callbacks —
+ * no overlays or reverse-geocoding inside this component.
+ */
+
 import { useEffect, useState, useRef, useCallback } from "react";
 import L from "leaflet";
 import "leaflet-polylinedecorator";
@@ -51,9 +61,10 @@ const MapComponent = ({
   center = [12.9716, 77.5946],
   zoom = 12,
   onLocationFound,
+  onMapClick,
   tileUrl = mapViews.satellite.tileUrl,
   attribution = mapViews.satellite.attribution,
-  routeData = [], // Array of { lat, lng }
+  routeData = [],
   pathColor = "#4285F4",
   pathWeight = 4,
   pathOpacity = 0.9,
@@ -66,8 +77,6 @@ const MapComponent = ({
   const userMarkerRef = useRef(null);
   const routeLayerGroupRef = useRef(null);
   const [locating, setLocating] = useState(false);
-  const [clickedCoordinates, setClickedCoordinates] = useState(null);
-  const [clickedPlaceName, setClickedPlaceName] = useState("");
 
   // Initialize Leaflet Map
   useEffect(() => {
@@ -85,10 +94,12 @@ const MapComponent = ({
     }).addTo(mapInstanceRef.current);
 
     const handleMapClick = (event) => {
-      setClickedCoordinates({
-        lat: event.latlng.lat,
-        lng: event.latlng.lng,
-      });
+      if (onMapClick) {
+        onMapClick({
+          lat: event.latlng.lat,
+          lng: event.latlng.lng,
+        });
+      }
     };
 
     mapInstanceRef.current.on("click", handleMapClick);
@@ -101,56 +112,17 @@ const MapComponent = ({
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
-    if (!clickedCoordinates) return undefined;
-
-    const controller = new AbortController();
-    setClickedPlaceName("Finding place...");
-
-    const fetchPlaceName = async () => {
-      try {
-        const query = new URLSearchParams({
-          format: "jsonv2",
-          lat: clickedCoordinates.lat,
-          lon: clickedCoordinates.lng,
-          zoom: "18",
-        });
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?${query}`,
-          { signal: controller.signal }
-        );
-
-        if (!response.ok) throw new Error("Reverse geocoding failed");
-
-        const data = await response.json();
-        setClickedPlaceName(data.display_name || "Place name unavailable");
-      } catch (error) {
-        if (error.name !== "AbortError") {
-          setClickedPlaceName("Place name unavailable");
-        }
-      }
-    };
-
-    fetchPlaceName();
-
-    return () => controller.abort();
-  }, [clickedCoordinates]);
-
   // Draw route path when routeData changes
   useEffect(() => {
     if (!mapInstanceRef.current || !routeData || routeData.length < 2) return;
 
-    // Remove previous route layers
     if (routeLayerGroupRef.current) {
       mapInstanceRef.current.removeLayer(routeLayerGroupRef.current);
     }
 
     const group = L.layerGroup();
-
-    // Build the polyline coordinates
     const latLngs = routeData.map((point) => [point.lat, point.lng]);
 
-    // Draw the path line
     const polyline = L.polyline(latLngs, {
       color: pathColor,
       weight: pathWeight,
@@ -160,7 +132,6 @@ const MapComponent = ({
       lineCap: "round",
     }).addTo(group);
 
-    // Add arrow decorations only when the plugin is available.
     if (L.polylineDecorator && L.Symbol?.arrowHead) {
       const decorator = L.polylineDecorator(polyline, {
         patterns: [
@@ -181,7 +152,6 @@ const MapComponent = ({
       decorator.addTo(group);
     }
 
-    // Add numbered markers at each point
     if (showMarkers) {
       routeData.forEach((point, index) => {
         L.marker([point.lat, point.lng], {
@@ -190,25 +160,20 @@ const MapComponent = ({
       });
     }
 
-    // Add start and end markers
     const startIcon = createNumberedIcon("S", "#27ae60");
     const endIcon = createNumberedIcon("E", "#e74c3c");
-
     const startPoint = routeData[0];
     const endPoint = routeData[routeData.length - 1];
 
-    L.marker([startPoint.lat, startPoint.lng], { icon: startIcon })
-      .addTo(group);
+    L.marker([startPoint.lat, startPoint.lng], { icon: startIcon }).addTo(group);
 
     if (routeData.length > 1) {
-      L.marker([endPoint.lat, endPoint.lng], { icon: endIcon })
-        .addTo(group);
+      L.marker([endPoint.lat, endPoint.lng], { icon: endIcon }).addTo(group);
     }
 
     group.addTo(mapInstanceRef.current);
     routeLayerGroupRef.current = group;
 
-    // Fit map bounds to show entire route
     if (fitRouteBounds) {
       mapInstanceRef.current.fitBounds(polyline.getBounds(), {
         padding: [40, 40],
@@ -235,9 +200,7 @@ const MapComponent = ({
             mapInstanceRef.current.removeLayer(userMarkerRef.current);
           }
 
-          mapInstanceRef.current.flyTo(userLocation, 16, {
-            duration: 1.5,
-          });
+          mapInstanceRef.current.flyTo(userLocation, 16, { duration: 1.5 });
 
           userMarkerRef.current = L.marker(userLocation, {
             icon: userIcon,
@@ -274,34 +237,16 @@ const MapComponent = ({
   return (
     <div className="map-component">
       {/* Map Container */}
-      <div
-        ref={mapContainerRef}
-        className="map-container"
-      />
-
-      {/* Clicked Coordinates Display */}
-      {clickedCoordinates && (
-        <div
-          className="map-coordinates"
-        >
-          Lat: {clickedCoordinates.lat.toFixed(6)}
-          <br />
-          Lng: {clickedCoordinates.lng.toFixed(6)}
-          <br />
-          {clickedPlaceName}
-        </div>
-      )}
+      <div ref={mapContainerRef} className="map-container" />
 
       {/* Route Info Badge */}
       {routeData && routeData.length >= 2 && (
-        <div
-          className="route-info-badge"
-        >
+        <div className="route-info-badge">
           <span style={{ color: pathColor }}>●</span> {routeData.length} waypoints
         </div>
       )}
 
-      {/* My Location Button - Top Right Corner */}
+      {/* My Location Button — Top Right Corner */}
       <button
         onClick={goToMyLocation}
         title="My Location"
@@ -309,39 +254,18 @@ const MapComponent = ({
         className="my-location-button"
       >
         {locating ? (
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            className="location-loader"
-          >
-            <circle
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="#999"
-              strokeWidth="2.5"
-              fill="none"
-              strokeDasharray="31.4 31.4"
-              strokeLinecap="round"
-            />
+          <svg width="20" height="20" viewBox="0 0 24 24" className="location-loader">
+            <circle cx="12" cy="12" r="10" stroke="#999" strokeWidth="2.5" fill="none" strokeDasharray="31.4 31.4" strokeLinecap="round" />
             <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
           </svg>
         ) : (
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="4" stroke="#666" strokeWidth="2" fill="none" />
             <circle cx="12" cy="12" r="9" stroke="#666" strokeWidth="1.5" fill="none" strokeDasharray="3 3" />
             <circle cx="12" cy="12" r="1.5" fill="#4285F4" />
           </svg>
         )}
       </button>
-
     </div>
   );
 };

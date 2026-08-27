@@ -1,0 +1,83 @@
+"""
+Pydantic models describing every API request/response.
+
+These schemas double as live documentation on /docs and guarantee that the
+JSON sent to the frontend always has a stable, predictable shape.
+"""
+
+from typing import List, Optional
+
+from pydantic import BaseModel
+
+
+# ── Detection building blocks ─────────────────────────────────────────────────
+class BoundingBox(BaseModel):
+    """Pixel coordinates of one detected object (top-left / bottom-right)."""
+
+    xmin: int
+    ymin: int
+    xmax: int
+    ymax: int
+
+
+class DetectedObject(BaseModel):
+    """One YOLO detection joined with its geographic position."""
+
+    name: str
+    confidence: float
+    bndbox: BoundingBox
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+
+
+# ── API 1: Preprocessing ──────────────────────────────────────────────────────
+class PreprocessResponse(BaseModel):
+    status: str
+    message: str
+    image_id: str
+    original_filename: str
+    preprocessed_image_url: str
+
+
+# ── API 2: AI detection ───────────────────────────────────────────────────────
+class DetectionResponse(BaseModel):
+    status: str
+    message: str
+    image_id: str
+    objects_detected: List[DetectedObject]
+    annotated_image_url: Optional[str] = None
+
+
+# ── API 3: Report (mirrors the classic XML annotation format) ─────────────────
+class SonarInfo(BaseModel):
+    range: Optional[float] = None
+    azimuth: Optional[float] = None
+    elevation: Optional[float] = None
+    soundspeed: Optional[float] = None
+    frequency: Optional[str] = None
+
+
+class FileInfo(BaseModel):
+    folder: str
+    filename: str
+
+
+class ImageSize(BaseModel):
+    width: int
+    height: int
+    channel: int
+
+
+class ReportObject(BaseModel):
+    name: str
+    confidence: float
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    bndbox: BoundingBox
+
+
+class DetectionReport(BaseModel):
+    sonar: SonarInfo
+    file: FileInfo
+    size: ImageSize
+    object: List[ReportObject]

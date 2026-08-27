@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import MapComponent from "./MapComponent";
 import SidePanel from "./SidePanel";
 import "./MapPage.css";
@@ -14,14 +14,48 @@ function normalizeGeneratedPositions(rows) {
     .filter((row) => Number.isFinite(row.lat) && Number.isFinite(row.lng));
 }
 
-export default function MapPage({ apiBaseUrl, refreshKey }) {
+/**
+ * Convert AI detection results (from /api/detect/{image_id}) into points
+ * that can be plotted on the Leaflet map.
+ */
+function normalizeDetectionPoints(objects = []) {
+  return objects
+    .map((object) => ({
+      lat: Number(object.latitude),
+      lng: Number(object.longitude),
+      label: `${object.name} (${(object.confidence * 100).toFixed(1)}%)`,
+      source: "detection",
+    }))
+    .filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.lng));
+}
+
+export default function MapPage({ apiBaseUrl, refreshKey, detectionPoints }) {
   const [clickedCoords, setClickedCoords] = useState(null);
   const [placeName, setPlaceName] = useState("");
   const [userLocation, setUserLocation] = useState(null);
   const [routeData, setRouteData] = useState([]);
   const [loadError, setLoadError] = useState("");
 
+  // Two exclusive views:
+  //   - detections present -> show ONLY the objects found in the uploaded image
+  //   - otherwise          -> show the 100 dataset points (Calculate Position)
+  const isDetectionView = normalizeDetectionPoints(detectionPoints).length > 0;
+
+  const mappedPoints = useMemo(() => {
+    if (isDetectionView) {
+      return normalizeDetectionPoints(detectionPoints);
+    }
+    return normalizeGeneratedPositions(routeData);
+  }, [routeData, detectionPoints, isDetectionView]);
+
   useEffect(() => {
+    // Only load the 100 dataset points AFTER the user clicks "Calculate Position"
+    // (refreshKey is incremented by that button in App.js).
+    if (!refreshKey) {
+      setRouteData([]);
+      return;
+    }
+
     const controller = new AbortController();
 
     const fetchGeneratedPositions = async () => {
@@ -91,7 +125,7 @@ export default function MapPage({ apiBaseUrl, refreshKey }) {
     <div className="map-page-container">
       <div className="map-container">
         <MapComponent
-          routeData={routeData}
+          routeData={mappedPoints}
           pathColor="#FF5722"
           showMarkers={true}
           onMapClick={(coords) => setClickedCoords(coords)}
@@ -108,7 +142,7 @@ export default function MapPage({ apiBaseUrl, refreshKey }) {
           placeName={placeName}
           userLocation={userLocation}
           routeInfo={{
-            waypoints: routeData.length,
+            waypoints: mappedPoints.length,
             downloadUrl: `${apiBaseUrl}/api/download-geotag-calculated`,
           }}
         >

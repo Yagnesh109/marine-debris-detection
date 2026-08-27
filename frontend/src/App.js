@@ -5,12 +5,15 @@ import MapPage from './pages/MapPage';
 import Navbar from './pages/navbar';
 import UploadPage from './pages/UploadPage';
 
-const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
+// Everything (including position calculation) is served by the FastAPI backend.
+const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
+const AI_API_BASE_URL = process.env.REACT_APP_AI_BACKEND_URL || "http://localhost:8000";
 
 function App() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [calculating, setCalculating] = useState(false);
   const [positionRefreshKey, setPositionRefreshKey] = useState(0);
+  const [detections, setDetections] = useState([]);
 
   const calculatePositions = async () => {
     setCalculating(true);
@@ -42,13 +45,22 @@ function App() {
         onCalculatePositions={calculatePositions}
         calculating={calculating}
       />
-      <div style={{ height: "calc(100% - 64px)" }}>
+      {/* Scrollable page area: every tab can grow and scroll here */}
+      <div style={{ height: "calc(100% - 64px)", overflowY: "auto" }}>
         {activeTab === "maps" ? (
-          <MapPage apiBaseUrl={API_BASE_URL} refreshKey={positionRefreshKey} />
+          <MapPage
+            apiBaseUrl={API_BASE_URL}
+            refreshKey={positionRefreshKey}
+            detectionPoints={detections}
+          />
         ) : activeTab === "upload" ? (
-          <UploadPage />
+          <UploadPage
+            aiApiBaseUrl={AI_API_BASE_URL}
+            onDetectionComplete={(result) => setDetections(result.objects_detected || [])}
+            onNavigate={setActiveTab}
+          />
         ) : (
-          <Dashboard />
+          <Dashboard aiApiBaseUrl={AI_API_BASE_URL} onNavigate={setActiveTab} />
         )}
       </div>
     </div>

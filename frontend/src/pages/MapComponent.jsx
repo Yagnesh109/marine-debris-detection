@@ -119,38 +119,42 @@ const MapComponent = ({
       routeLayerGroupRef.current = null;
     }
 
-    if (!routeData || routeData.length < 2) return;
+    if (!routeData || routeData.length === 0) return;
 
     const group = L.layerGroup();
     const latLngs = routeData.map((point) => [point.lat, point.lng]);
 
-    const polyline = L.polyline(latLngs, {
-      color: pathColor,
-      weight: pathWeight,
-      opacity: pathOpacity,
-      smoothFactor: 1,
-      lineJoin: "round",
-      lineCap: "round",
-    }).addTo(group);
+    // Polyline (with arrows) only makes sense once we have at least 2 points.
+    let polyline = null;
+    if (routeData.length >= 2) {
+      polyline = L.polyline(latLngs, {
+        color: pathColor,
+        weight: pathWeight,
+        opacity: pathOpacity,
+        smoothFactor: 1,
+        lineJoin: "round",
+        lineCap: "round",
+      }).addTo(group);
 
-    if (L.polylineDecorator && L.Symbol?.arrowHead) {
-      const decorator = L.polylineDecorator(polyline, {
-        patterns: [
-          {
-            offset: "10%",
-            repeat: "10%",
-            symbol: L.Symbol.arrowHead({
-              pixelSize: 8,
-              pathOptions: {
-                color: pathColor,
-                fillOpacity: pathOpacity,
-                weight: 2,
-              },
-            }),
-          },
-        ],
-      });
-      decorator.addTo(group);
+      if (L.polylineDecorator && L.Symbol?.arrowHead) {
+        const decorator = L.polylineDecorator(polyline, {
+          patterns: [
+            {
+              offset: "10%",
+              repeat: "10%",
+              symbol: L.Symbol.arrowHead({
+                pixelSize: 8,
+                pathOptions: {
+                  color: pathColor,
+                  fillOpacity: pathOpacity,
+                  weight: 2,
+                },
+              }),
+            },
+          ],
+        });
+        decorator.addTo(group);
+      }
     }
 
     if (showMarkers) {
@@ -179,9 +183,25 @@ const MapComponent = ({
     routeLayerGroupRef.current = group;
 
     if (fitRouteBounds) {
-      mapInstanceRef.current.fitBounds(polyline.getBounds(), {
-        padding: [40, 40],
-      });
+      if (polyline) {
+        // Multi-point route: fit to polyline bounds.
+        mapInstanceRef.current.fitBounds(polyline.getBounds(), {
+          padding: [40, 40],
+        });
+      } else if (latLngs.length === 1) {
+        // Single unique point: center with a fixed zoom.
+        mapInstanceRef.current.setView(latLngs[0], 16);
+      } else {
+        // Multiple points that may be identical (zero-area bounds).
+        const bounds = L.latLngBounds(latLngs);
+        const sw = bounds.getSouthWest();
+        const ne = bounds.getNorthEast();
+        if (sw.lat === ne.lat && sw.lng === ne.lng) {
+          mapInstanceRef.current.setView([sw.lat, sw.lng], 16);
+        } else {
+          mapInstanceRef.current.fitBounds(bounds, { padding: [40, 40] });
+        }
+      }
     }
   }, [routeData, pathColor, pathWeight, pathOpacity, showMarkers, fitRouteBounds, onPointClick]);
 

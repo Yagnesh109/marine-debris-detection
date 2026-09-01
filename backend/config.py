@@ -19,7 +19,7 @@ UPLOAD_DIR = DATA_DIR / "uploads"                   # original uploaded images
 RESULT_DIR = DATA_DIR / "results"                   # YOLO annotated images
 
 # ── Model & dataset files ─────────────────────────────────────────────────────
-MODEL_WEIGHTS_PATH = BASE_DIR / "best.pt"
+MODEL_WEIGHTS_PATH = BASE_DIR / "bestv2.pt"
 GEOTAG_CSV_PATH = BASE_DIR / "geotag.csv"
 
 # ── Position calculation (Vincenty direct formula script) ─────────────────────

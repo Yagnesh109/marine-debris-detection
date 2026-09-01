@@ -1,7 +1,7 @@
 """
 YOLO service — model loading and inference.
 
-The trained weights (``best.pt``) are loaded exactly once and reused for
+The trained weights (``bestvx.pt``) are loaded exactly once and reused for
 every request, which keeps inference fast after the first call.
 """
 

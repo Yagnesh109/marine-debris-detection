@@ -37,13 +37,13 @@ export default function UploadPage({ aiApiBaseUrl, onDetectionComplete, onNaviga
     setShowAnnotatedImage(false);
 
     if (!file) return;
-
+    /*
     if (!file.name.toLowerCase().endsWith(".bmp")) {
       alert("Please select a .bmp format image.");
       e.target.value = "";
       return;
     }
-
+    */
     setSelectedFile(file);
     setPreviewUrl(URL.createObjectURL(file));
   };
@@ -136,7 +136,6 @@ export default function UploadPage({ aiApiBaseUrl, onDetectionComplete, onNaviga
             <input
               className="file-input"
               type="file"
-              accept=".bmp"
               onChange={handleFileChange}
             />
           </label>
@@ -241,6 +240,13 @@ export default function UploadPage({ aiApiBaseUrl, onDetectionComplete, onNaviga
                     onClick={() => onNavigate("maps")}
                   >
                     Show Object on Map
+                  </button>
+                  <button
+                    type="button"
+                    className="action-button primary"
+                    onClick={() => onNavigate("3d-map")}
+                  >
+                    Show in 3D Map
                   </button>
                   <button
                     type="button"

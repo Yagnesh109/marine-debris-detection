@@ -4,6 +4,7 @@ import Dashboard from './pages/dashboard';
 import MapPage from './pages/MapPage';
 import Navbar from './pages/navbar';
 import UploadPage from './pages/UploadPage';
+import ThreeDMapPage from './pages/ThreeDMapPage';
 
 // Everything (including position calculation) is served by the FastAPI backend.
 const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
@@ -52,6 +53,11 @@ function App() {
             apiBaseUrl={API_BASE_URL}
             refreshKey={positionRefreshKey}
             detectionPoints={detections}
+          />
+        ) : activeTab === "3d-map" ? (
+          <ThreeDMapPage 
+            detections={detections}
+            onNavigate={setActiveTab}
           />
         ) : activeTab === "upload" ? (
           <UploadPage

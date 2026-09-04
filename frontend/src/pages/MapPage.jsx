@@ -1,36 +1,12 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import MapComponent from "./MapComponent";
 import SidePanel from "./SidePanel";
 import "./MapPage.css";
-
-function normalizeGeneratedPositions(rows) {
-  return rows
-    .map((row) => ({
-      ...row,
-      lat: Number(row.object_latitude),
-      lng: Number(row.object_longitude),
-      label: row.object_class,
-    }))
-    .filter((row) => Number.isFinite(row.lat) && Number.isFinite(row.lng));
-}
-
-/**
- * Convert AI detection results (from /api/detect/{image_id}) into points
- * that can be plotted on the Leaflet map.
- */
-function normalizeDetectionPoints(objects = []) {
-  return objects
-    .map((object) => ({
-      lat: Number(object.latitude),
-      lng: Number(object.longitude),
-      label: `${object.name} (${(object.confidence * 100).toFixed(1)}%)`,
-      source: "detection",
-    }))
-    .filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.lng));
-}
+import { normalizeDetectionPoints, normalizeGeneratedPositions } from "../utils/mapPoints";
 
 export default function MapPage({ apiBaseUrl, refreshKey, detectionPoints }) {
   const [clickedCoords, setClickedCoords] = useState(null);
+  const [selectedDetection, setSelectedDetection] = useState(null);
   const [placeName, setPlaceName] = useState("");
   const [userLocation, setUserLocation] = useState(null);
   const [routeData, setRouteData] = useState([]);
@@ -38,7 +14,7 @@ export default function MapPage({ apiBaseUrl, refreshKey, detectionPoints }) {
 
   // Two exclusive views:
   //   - detections present -> show ONLY the objects found in the uploaded image
-  //   - otherwise          -> show the 100 dataset points (Calculate Position)
+  //   - otherwise          -> show no generated dataset points
   const isDetectionView = normalizeDetectionPoints(detectionPoints).length > 0;
 
   const mappedPoints = useMemo(() => {
@@ -48,9 +24,19 @@ export default function MapPage({ apiBaseUrl, refreshKey, detectionPoints }) {
     return normalizeGeneratedPositions(routeData);
   }, [routeData, detectionPoints, isDetectionView]);
 
+  const handleMapClick = useCallback((coords) => {
+    setSelectedDetection(null);
+    setClickedCoords(coords);
+  }, []);
+
+  const handlePointClick = useCallback((point) => {
+    setSelectedDetection(point);
+    setClickedCoords({ lat: point.lat, lng: point.lng });
+  }, []);
+
   useEffect(() => {
-    // Only load the 100 dataset points AFTER the user clicks "Calculate Position"
-    // (refreshKey is incremented by that button in App.js).
+    // Generated dataset positions remain available for the existing map flow,
+    // but are not loaded unless a caller supplies a refresh key.
     if (!refreshKey) {
       setRouteData([]);
       return;
@@ -128,10 +114,8 @@ export default function MapPage({ apiBaseUrl, refreshKey, detectionPoints }) {
           routeData={mappedPoints}
           pathColor="#FF5722"
           showMarkers={true}
-          onMapClick={(coords) => setClickedCoords(coords)}
-          onPointClick={(point) => {
-            setClickedCoords({ lat: point.lat, lng: point.lng });
-          }}
+          onMapClick={handleMapClick}
+          onPointClick={handlePointClick}
           onLocationFound={(loc) => setUserLocation(loc)}
         />
       </div>
@@ -139,6 +123,7 @@ export default function MapPage({ apiBaseUrl, refreshKey, detectionPoints }) {
       <div className="side-panel-container">
         <SidePanel
           coordinates={clickedCoords}
+          detection={selectedDetection}
           placeName={placeName}
           userLocation={userLocation}
           routeInfo={{

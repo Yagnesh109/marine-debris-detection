@@ -7,7 +7,7 @@ Endpoints:
     GET   /api/report/{image_id}        API 3: JSON report
     GET   /api/report/{image_id}/download  report as .json attachment
     GET   /api/stats                    API 4: dashboard counters
-    POST  /api/calculate-position       API 5: Vincenty lat/lon from geotag.csv
+    POST  /api/calculate-position       API 5: batch geotag calculation
 
 Run from the ``backend`` folder:
     uvicorn main:app --reload --port 8000
@@ -45,6 +45,7 @@ app.add_middleware(
 config.UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 config.RESULT_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/media", StaticFiles(directory=str(config.DATA_DIR)), name="media")
+app.mount("/3dmodels", StaticFiles(directory=str(config.BASE_DIR / "3dmodels")), name="3dmodels")
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(preprocessing.router)

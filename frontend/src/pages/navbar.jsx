@@ -1,34 +1,70 @@
 import "./navbar.css";
 
-const Navbar = ({ activeTab, onNavigate, onCalculatePositions, calculating }) => {
-  const tabs = ["Dashboard", "Maps", "Upload"];
-
+const Navbar = ({
+  activeTab,
+  onNavigate,
+  hasDetections,
+  onGenerateReport,
+}) => {
   return (
     <nav className="main-navbar" aria-label="Main navigation">
-      {tabs.map((tab) => {
-        const tabKey = tab.toLowerCase();
-        const isActive = activeTab === tabKey;
-
-        return (
-          <button
-            key={tabKey}
-            type="button"
-            onClick={() => onNavigate(tabKey)}
-            aria-current={isActive ? "page" : undefined}
-            className={`navbar-tab${isActive ? " active" : ""}`}
-          >
-            {tab}
-          </button>
-        );
-      })}
       <button
         type="button"
-        onClick={onCalculatePositions}
-        disabled={calculating}
-        className="navbar-action"
+        onClick={() => onNavigate("dashboard")}
+        aria-current={activeTab === "dashboard" ? "page" : undefined}
+        className={`navbar-tab${activeTab === "dashboard" ? " active" : ""}`}
       >
-        {calculating ? "Calculating..." : "Calculate Position"}
+        Dashboard
       </button>
+
+      <button
+        type="button"
+        onClick={() => onNavigate("history")}
+        aria-current={activeTab === "history" ? "page" : undefined}
+        className={`navbar-tab${activeTab === "history" ? " active" : ""}`}
+      >
+        History
+      </button>
+
+      {hasDetections && (
+        <>
+          <button
+            type="button"
+            onClick={() => onNavigate("maps")}
+            aria-current={activeTab === "maps" ? "page" : undefined}
+            className={`navbar-tab${activeTab === "maps" ? " active" : ""}`}
+          >
+            Show Object on Map
+          </button>
+          
+          <button
+            type="button"
+            onClick={() => onNavigate("3d-map")}
+            aria-current={activeTab === "3d-map" ? "page" : undefined}
+            className={`navbar-tab${activeTab === "3d-map" ? " active" : ""}`}
+          >
+            Show in 3D Map
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onNavigate("annotated-image")}
+            aria-current={activeTab === "annotated-image" ? "page" : undefined}
+            className={`navbar-tab${activeTab === "annotated-image" ? " active" : ""}`}
+          >
+            Show Object on Image
+          </button>
+
+          <button
+            type="button"
+            className={`navbar-tab${activeTab === "report" ? " active" : ""}`}
+            style={{ marginLeft: "auto" }}
+            onClick={onGenerateReport}
+          >
+            Generate Report
+          </button>
+        </>
+      )}
     </nav>
   );
 };

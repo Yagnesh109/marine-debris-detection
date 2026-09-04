@@ -68,13 +68,17 @@ const MapComponent = ({
   pathOpacity = 0.9,
   showMarkers = true,
   fitRouteBounds = true,
+  overviewZoom = 6,
+  markerZoom = 18,
 }) => {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const tileLayerRef = useRef(null);
   const userMarkerRef = useRef(null);
   const routeLayerGroupRef = useRef(null);
+  const markerFocusRef = useRef({ key: null, zoomed: false });
   const [locating, setLocating] = useState(false);
+  const [locationVisible, setLocationVisible] = useState(false);
 
   // Initialize Leaflet Map
   useEffect(() => {
@@ -166,9 +170,37 @@ const MapComponent = ({
         const marker = L.marker([point.lat, point.lng], {
           icon: createDotIcon(markerColor, markerSize),
         });
+        const markerKey = `${point.lat}:${point.lng}:${index}`;
 
         marker.on("click", (event) => {
           L.DomEvent.stopPropagation(event);
+
+          const map = mapInstanceRef.current;
+          const isSameMarker = markerFocusRef.current.key === markerKey;
+          const shouldZoomOut = isSameMarker && markerFocusRef.current.zoomed;
+
+          if (map) {
+            if (shouldZoomOut) {
+              const latLngs = routeData.map((routePoint) => [routePoint.lat, routePoint.lng]);
+              const bounds = L.latLngBounds(latLngs);
+              const samePoint = bounds.getSouthWest().equals(bounds.getNorthEast());
+
+              if (samePoint) {
+                map.flyTo([point.lat, point.lng], overviewZoom, { duration: 2 });
+              } else {
+                map.flyToBounds(bounds, {
+                  padding: [40, 40],
+                  maxZoom: overviewZoom,
+                  duration: 2,
+                });
+              }
+
+              markerFocusRef.current = { key: markerKey, zoomed: false };
+            } else {
+              map.flyTo([point.lat, point.lng], markerZoom, { duration: 2 });
+              markerFocusRef.current = { key: markerKey, zoomed: true };
+            }
+          }
 
           if (onPointClick) {
             onPointClick(point);
@@ -190,25 +222,48 @@ const MapComponent = ({
         });
       } else if (latLngs.length === 1) {
         // Single unique point: center with a fixed zoom.
-        mapInstanceRef.current.setView(latLngs[0], 16);
+          mapInstanceRef.current.setView(latLngs[0], overviewZoom);
       } else {
         // Multiple points that may be identical (zero-area bounds).
         const bounds = L.latLngBounds(latLngs);
         const sw = bounds.getSouthWest();
         const ne = bounds.getNorthEast();
         if (sw.lat === ne.lat && sw.lng === ne.lng) {
-          mapInstanceRef.current.setView([sw.lat, sw.lng], 16);
+          mapInstanceRef.current.setView([sw.lat, sw.lng], overviewZoom);
         } else {
-          mapInstanceRef.current.fitBounds(bounds, { padding: [40, 40] });
+          mapInstanceRef.current.fitBounds(bounds, {
+            padding: [40, 40],
+            maxZoom: overviewZoom,
+          });
         }
       }
     }
-  }, [routeData, pathColor, pathWeight, pathOpacity, showMarkers, fitRouteBounds, onPointClick]);
+  }, [
+    routeData,
+    pathColor,
+    pathWeight,
+    pathOpacity,
+    showMarkers,
+    fitRouteBounds,
+    overviewZoom,
+    markerZoom,
+    onPointClick,
+  ]);
 
   // Navigate to user's current location
   const goToMyLocation = useCallback(() => {
     if (!navigator.geolocation) {
       alert("Geolocation is not supported by your browser");
+      return;
+    }
+
+    if (locationVisible) {
+      if (mapInstanceRef.current && userMarkerRef.current) {
+        mapInstanceRef.current.removeLayer(userMarkerRef.current);
+      }
+      userMarkerRef.current = null;
+      setLocationVisible(false);
+      onLocationFound?.(null);
       return;
     }
 
@@ -224,11 +279,10 @@ const MapComponent = ({
             mapInstanceRef.current.removeLayer(userMarkerRef.current);
           }
 
-          mapInstanceRef.current.flyTo(userLocation, 16, { duration: 1.5 });
-
           userMarkerRef.current = L.marker(userLocation, {
             icon: userIcon,
           }).addTo(mapInstanceRef.current);
+          setLocationVisible(true);
 
           if (onLocationFound) {
             onLocationFound({ lat: latitude, lng: longitude });
@@ -256,7 +310,7 @@ const MapComponent = ({
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
-  }, [onLocationFound]);
+  }, [locationVisible, onLocationFound]);
 
   return (
     <div className="map-component">
@@ -273,7 +327,8 @@ const MapComponent = ({
       {/* My Location Button — Top Right Corner */}
       <button
         onClick={goToMyLocation}
-        title="My Location"
+        title={locationVisible ? "Hide My Location" : "Show My Location"}
+        aria-label={locationVisible ? "Hide my location" : "Show my location"}
         disabled={locating}
         className="my-location-button"
       >

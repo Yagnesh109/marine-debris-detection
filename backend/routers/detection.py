@@ -9,53 +9,14 @@ annotated image and joins every detection with its latitude / longitude from
 """
 
 from pathlib import Path
-from typing import List
-
 from fastapi import APIRouter, HTTPException
 
 import config
 import session_store
-from schemas import BoundingBox, DetectionResponse, DetectedObject
-from services import geotag_service, yolo_service
+from schemas import DetectionResponse
+from services import detection_service, yolo_service
 
 router = APIRouter(prefix="/api", tags=["2 - AI Detection"])
-
-
-def _extract_detections(result, original_filename: str) -> tuple:
-    """
-    Convert raw ultralytics boxes into DetectedObject models.
-
-    Latitude / longitude are CALCULATED from the sonar record in geotag.csv
-    (vehicle GPS + heading + range + azimuth via Vincenty's formula). When
-    the image has no CSV row, an approximate fallback position is used.
-
-    Returns (detected_objects, position_source).
-    """
-    geo_position = geotag_service.calculate_position_for_image(original_filename)
-    latitude = geo_position["latitude"]
-    longitude = geo_position["longitude"]
-
-    detected_objects: List[DetectedObject] = []
-    for box in result.boxes:
-        class_id = int(box.cls[0])
-        x_min, y_min, x_max, y_max = map(int, box.xyxy[0].tolist())
-
-        detected_objects.append(
-            DetectedObject(
-                name=result.names[class_id],
-                confidence=round(float(box.conf[0]), 4),
-                bndbox=BoundingBox(
-                    xmin=x_min,
-                    ymin=y_min,
-                    xmax=x_max,
-                    ymax=y_max,
-                ),
-                latitude=latitude,
-                longitude=longitude,
-            )
-        )
-
-    return detected_objects, geo_position["source"]
 
 
 @router.post("/detect/{image_id}", response_model=DetectionResponse)
@@ -72,9 +33,23 @@ async def detect_objects(image_id: str):
     if not image_path.exists():
         raise HTTPException(status_code=410, detail="Stored image is missing on disk.")
 
+    # Check if YOLO model exists
+    if not config.MODEL_WEIGHTS_PATH.exists():
+        raise HTTPException(
+            status_code=503,
+            detail=f"YOLO model file not found at {config.MODEL_WEIGHTS_PATH}. Please ensure bestv2.pt is in the backend directory.",
+        )
+
     print(f"[Detection] Running YOLO on '{session['original_filename']}'...")
 
-    results = yolo_service.run_detection(image_path)
+    try:
+        results = yolo_service.run_detection(image_path)
+    except Exception as e:
+        print(f"[Detection] Error during YOLO inference: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"YOLO detection failed: {str(e)}",
+        )
     primary_result = results[0]
 
     # ── Save annotated image for the frontend ─────────────────────────────────
@@ -85,7 +60,7 @@ async def detect_objects(image_id: str):
     print(f"[Detection] Annotated image saved -> {annotated_path}")
 
     # ── Build response with geotagged positions ───────────────────────────────
-    detected_objects, position_source = _extract_detections(
+    detected_objects, position_source = detection_service.extract_detections(
         primary_result, session["original_filename"]
     )
     session_store.save_detections(image_id, [obj.model_dump() for obj in detected_objects])

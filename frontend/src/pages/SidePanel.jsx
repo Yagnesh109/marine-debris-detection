@@ -16,6 +16,7 @@ import React, { useState } from "react";
 
 export default function SidePanel({
   coordinates = null,       // { lat, lng } from map click
+  detection = null,         // selected detected object from a marker click
   placeName = "",            // reverse-geocoded name
   routeInfo = null,           // { waypoints: number, distance?: string }
   userLocation = null,        // { lat, lng } from GPS
@@ -155,6 +156,22 @@ export default function SidePanel({
               </p>
             )}
           </Section>
+
+          {/* ======= SECTION: Location Name ======= */}
+          {detection && (
+            <Section title="Detected Object" icon="target">
+              <div style={styles.statRow}>
+                <span style={styles.statLabel}>Object</span>
+                <span style={styles.statValue}>{detection.objectName || "Object"}</span>
+              </div>
+              <div style={styles.statRow}>
+                <span style={styles.statLabel}>Confidence</span>
+                <span style={styles.statValue}>
+                  {(Number(detection.confidence || 0) * 100).toFixed(1)}%
+                </span>
+              </div>
+            </Section>
+          )}
 
           {/* ======= SECTION: Location Name ======= */}
           <Section title="Location" icon="map">

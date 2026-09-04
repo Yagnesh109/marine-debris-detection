@@ -1,5 +1,11 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import "./UploadPage.css";
+import UploadHeader from "../components/upload/UploadHeader";
+import UploadToolbar from "../components/upload/UploadToolbar";
+import UploadStatus from "../components/upload/UploadStatus";
+import ImagePreviews from "../components/upload/ImagePreviews";
+import DetectionResults from "../components/upload/DetectionResults";
+import { detectImage, preprocessImage } from "../utils/detectionApi";
 
 /**
  * UploadPage.jsx
@@ -15,7 +21,10 @@ import "./UploadPage.css";
  *        - Generate Report       -> downloads the JSON report       (API 3)
  */
 
-export default function UploadPage({ aiApiBaseUrl, onDetectionComplete, onNavigate }) {
+export default function UploadPage({
+  aiApiBaseUrl,
+  onDetectionComplete,
+}) {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
 
@@ -25,8 +34,18 @@ export default function UploadPage({ aiApiBaseUrl, onDetectionComplete, onNaviga
   const [uploading, setUploading] = useState(false);
   const [detecting, setDetecting] = useState(false);
   const [error, setError] = useState("");
+  const fileInputRef = useRef(null);
 
-  const [showAnnotatedImage, setShowAnnotatedImage] = useState(false);
+  const handleUploadOtherImage = () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    setPreprocessInfo(null);
+    setDetectionResult(null);
+    setError("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (onDetectionComplete) onDetectionComplete(null);
+  };
 
   /* -- Step 0: file selection ------------------------------------------------ */
   const handleFileChange = (e) => {
@@ -34,7 +53,7 @@ export default function UploadPage({ aiApiBaseUrl, onDetectionComplete, onNaviga
     setPreprocessInfo(null);
     setDetectionResult(null);
     setError("");
-    setShowAnnotatedImage(false);
+    if (onDetectionComplete) onDetectionComplete(null);
 
     if (!file) return;
     /*
@@ -48,40 +67,6 @@ export default function UploadPage({ aiApiBaseUrl, onDetectionComplete, onNaviga
     setPreviewUrl(URL.createObjectURL(file));
   };
 
-  /* -- API 1: preprocessing -------------------------------------------------- */
-  const preprocessImage = async (file) => {
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const res = await fetch(`${aiApiBaseUrl}/api/preprocess`, {
-      method: "POST",
-      body: formData,
-    });
-    const data = await res.json();
-
-    if (!res.ok) throw new Error(data.detail || "Preprocessing failed");
-
-    setPreprocessInfo({
-      message: data.message,
-      imageUrl: `${aiApiBaseUrl}${data.preprocessed_image_url}`,
-    });
-
-    return data.image_id;
-  };
-
-  /* -- API 2: YOLO detection (called automatically after step 1) -------------- */
-  const detectObjects = async (imageId) => {
-    const res = await fetch(`${aiApiBaseUrl}/api/detect/${imageId}`, {
-      method: "POST",
-    });
-    const data = await res.json();
-
-    if (!res.ok) throw new Error(data.detail || "AI detection failed");
-
-    setDetectionResult(data);
-    if (onDetectionComplete) onDetectionComplete(data);
-  };
-
   /* -- Full pipeline: preprocess -> detect ------------------------------------ */
   const handleUploadAndDetect = async () => {
     if (!selectedFile) return;
@@ -89,14 +74,17 @@ export default function UploadPage({ aiApiBaseUrl, onDetectionComplete, onNaviga
     setUploading(true);
     setError("");
     setDetectionResult(null);
-    setShowAnnotatedImage(false);
+    if (onDetectionComplete) onDetectionComplete(null);
 
     try {
-      const imageId = await preprocessImage(selectedFile);
+      const { imageId, info } = await preprocessImage(aiApiBaseUrl, selectedFile);
+      setPreprocessInfo(info);
 
       setUploading(false);
       setDetecting(true);
-      await detectObjects(imageId);
+      const result = await detectImage(aiApiBaseUrl, imageId);
+      setDetectionResult(result);
+      if (onDetectionComplete) onDetectionComplete(result);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -105,175 +93,30 @@ export default function UploadPage({ aiApiBaseUrl, onDetectionComplete, onNaviga
     }
   };
 
-  /* -- API 3: download the JSON report ---------------------------------------- */
-  const handleGenerateReport = () => {
-    const link = document.createElement("a");
-    link.href = `${aiApiBaseUrl}/api/report/${detectionResult.image_id}/download`;
-    link.download = "";
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  };
-
-  const mediaUrl = (relativeUrl) => `${aiApiBaseUrl}${relativeUrl}`;
   const isBusy = uploading || detecting;
-  const hasDetections = detectionResult?.objects_detected?.length > 0;
 
   return (
     <div className="upload-page">
       <div className="upload-inner">
-        {/* -- Header --------------------------------------------------------- */}
-        <h2 className="upload-title">Sonar Image Analysis</h2>
-        <p className="upload-subtitle">
-          Upload a .bmp side-scan sonar image. It is preprocessed and then
-          automatically analyzed by the YOLO model.
-        </p>
-
-        {/* -- Toolbar: choose file + start pipeline --------------------------- */}
-        <div className="upload-toolbar">
-          <label className="file-label">
-            Choose Image
-            <input
-              className="file-input"
-              type="file"
-              onChange={handleFileChange}
-            />
-          </label>
-
-          {selectedFile && (
-            <span className="file-name" title={selectedFile.name}>
-              {selectedFile.name}
-            </span>
-          )}
-
-          <button
-            type="button"
-            className="action-button primary"
-            onClick={handleUploadAndDetect}
-            disabled={!selectedFile || isBusy}
-            style={{ marginLeft: "auto" }}
-          >
-            {uploading ? "Preprocessing..." : detecting ? "AI Detecting..." : "Upload & Detect"}
-          </button>
-        </div>
-
-        {/* -- Status banners --------------------------------------------------- */}
-        {uploading && (
-          <div className="status-banner info">Step 1/2 - Preprocessing image...</div>
-        )}
-        {detecting && (
-          <div className="status-banner info">Step 2/2 - Running YOLO detection...</div>
-        )}
-        {error && <div className="status-banner error">Error: {error}</div>}
-        {preprocessInfo && !isBusy && (
-          <div className="status-banner success">{preprocessInfo.message}</div>
-        )}
-
-        {/* -- Original + preprocessed previews --------------------------------- */}
-        {(previewUrl || preprocessInfo) && (
-          <div className="preview-grid">
-            {previewUrl && (
-              <div className="preview-card">
-                <h3>Original</h3>
-                <img className="preview-image" src={previewUrl} alt="Original" />
-              </div>
-            )}
-            {preprocessInfo && (
-              <div className="preview-card">
-                <h3>Preprocessed</h3>
-                <p className="preview-caption">{preprocessInfo.message}</p>
-                <img
-                  className="preview-image"
-                  src={preprocessInfo.imageUrl}
-                  alt="Preprocessed"
-                />
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* -- Detection results ------------------------------------------------- */}
-        {detectionResult && (
-          <section className="results-section">
-            <h3 className="results-heading">Detection Results</h3>
-            <p className="results-summary">{detectionResult.message}</p>
-
-            {hasDetections && (
-              <>
-                <div className="table-scroll">
-                  <table className="detection-table">
-                    <thead>
-                      <tr>
-                        <th>Object</th>
-                        <th>Confidence</th>
-                        <th>Latitude</th>
-                        <th>Longitude</th>
-                        <th>Bounding Box (xmin, ymin - xmax, ymax)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {detectionResult.objects_detected.map((obj, index) => (
-                        <tr key={index}>
-                          <td>{obj.name}</td>
-                          <td>
-                            <span className="confidence-pill">
-                              {(obj.confidence * 100).toFixed(1)}%
-                            </span>
-                          </td>
-                          <td className="mono">{obj.latitude == null ? "-" : obj.latitude}</td>
-                          <td className="mono">{obj.longitude == null ? "-" : obj.longitude}</td>
-                          <td className="mono">
-                            ({obj.bndbox.xmin}, {obj.bndbox.ymin}) - ({obj.bndbox.xmax},{" "}
-                            {obj.bndbox.ymax})
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* -- Action buttons ---------------------------------------------- */}
-                <div className="result-actions">
-                  <button
-                    type="button"
-                    className="action-button primary"
-                    onClick={() => onNavigate("maps")}
-                  >
-                    Show Object on Map
-                  </button>
-                  <button
-                    type="button"
-                    className="action-button primary"
-                    onClick={() => onNavigate("3d-map")}
-                  >
-                    Show in 3D Map
-                  </button>
-                  <button
-                    type="button"
-                    className="action-button"
-                    onClick={() => setShowAnnotatedImage((visible) => !visible)}
-                  >
-                    {showAnnotatedImage ? "Hide Object on Image" : "Show Object on Image"}
-                  </button>
-                  <button type="button" className="action-button" onClick={handleGenerateReport}>
-                    Generate Report
-                  </button>
-                </div>
-
-                {/* -- YOLO annotated image ---------------------------------------- */}
-                {showAnnotatedImage && (
-                  <div className="annotated-block">
-                    <img
-                      className="annotated-image"
-                      src={mediaUrl(detectionResult.annotated_image_url)}
-                      alt="YOLO detections"
-                    />
-                  </div>
-                )}
-              </>
-            )}
-          </section>
-        )}
+        <UploadHeader onReset={handleUploadOtherImage} disabled={isBusy} />
+        <UploadToolbar
+          fileInputRef={fileInputRef}
+          selectedFile={selectedFile}
+          onFileChange={handleFileChange}
+          onSubmit={handleUploadAndDetect}
+          disabled={isBusy}
+          uploading={uploading}
+          detecting={detecting}
+        />
+        <UploadStatus
+          uploading={uploading}
+          detecting={detecting}
+          error={error}
+          preprocessInfo={preprocessInfo}
+          isBusy={isBusy}
+        />
+        <ImagePreviews previewUrl={previewUrl} preprocessInfo={preprocessInfo} />
+        <DetectionResults detectionResult={detectionResult} />
       </div>
     </div>
   );

@@ -15,7 +15,7 @@ _lock = threading.Lock()
 _sessions: Dict[str, Dict[str, Any]] = {}
 
 
-def create_session(image_id: str, original_filename: str, upload_path: str) -> None:
+def create_session(image_id: str, original_filename: str, upload_path: str) -> str:
     """Register a freshly uploaded image under the given image_id."""
     with _lock:
         _sessions[image_id] = {

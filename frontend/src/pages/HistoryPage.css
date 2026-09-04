@@ -1,0 +1,103 @@
+.history-page {
+  min-height: 100%;
+  box-sizing: border-box;
+  padding: 32px 24px 48px;
+  background: #0d1117;
+  color: #e6edf3;
+}
+
+.history-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.history-header {
+  margin-bottom: 24px;
+}
+
+.history-header h1 {
+  margin: 0 0 8px;
+  font-size: 28px;
+}
+
+.history-header p {
+  margin: 0;
+  color: #8b949e;
+  font-size: 14px;
+}
+
+.history-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  color: #8b949e;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.history-filter {
+  min-width: 150px;
+  padding: 8px 10px;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  background: #161b22;
+  color: #e6edf3;
+  font: inherit;
+}
+
+.history-filter::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
+.history-table-scroll {
+  overflow-x: auto;
+  border: 1px solid #21262d;
+  border-radius: 10px;
+  background: #161b22;
+}
+
+.history-table {
+  width: 100%;
+  min-width: 940px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.history-table th,
+.history-table td {
+  padding: 11px 14px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.history-table th {
+  color: #8b949e;
+  border-bottom: 1px solid #30363d;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.history-table td {
+  border-bottom: 1px solid #21262d;
+}
+
+.history-table tr:last-child td {
+  border-bottom: none;
+}
+
+.history-confidence {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: rgba(35, 134, 54, 0.15);
+  color: #3fb950;
+  font-weight: 600;
+}
+
+.history-mono {
+  font-family: "SF Mono", "Fira Code", Consolas, monospace;
+}

@@ -28,6 +28,139 @@
   color: #61dafb;
 }
 
+.analysis-toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1000;
+  padding: 13px 18px;
+  border: 1px solid #2ea043;
+  border-radius: 8px;
+  background: #162b1e;
+  color: #b7f7c5;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  font-size: 14px;
+  font-weight: 600;
+  animation: analysis-toast-in 0.2s ease-out;
+}
+
+@keyframes analysis-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .analysis-toast {
+    right: 16px;
+    bottom: 16px;
+    left: 16px;
+    text-align: center;
+  }
+}
+
+.annotated-page {
+  min-height: 100%;
+  padding: 28px 24px 48px;
+  box-sizing: border-box;
+  background: #0d1117;
+  color: #e6edf3;
+}
+
+.annotated-page-title {
+  max-width: 1080px;
+  margin: 0 auto 20px;
+  font-size: 22px;
+}
+
+.annotated-page-image {
+  display: block;
+  width: min(1080px, 100%);
+  max-height: calc(100vh - 150px);
+  margin: 0 auto;
+  object-fit: contain;
+  border: 1px solid #21262d;
+  border-radius: 8px;
+  background: #161b22;
+}
+
+.three-d-page {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: #0a192f;
+}
+
+.three-d-details,
+.three-d-legend {
+  position: absolute;
+  top: 20px;
+  z-index: 10;
+  color: white;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 15px;
+  border: 1px solid #444;
+  border-radius: 8px;
+}
+
+.three-d-details {
+  right: 20px;
+  min-width: 200px;
+}
+
+.three-d-details h3 {
+  margin: 0 0 10px;
+  color: #ff4444;
+}
+
+.three-d-details p {
+  margin: 5px 0;
+}
+
+.three-d-details button,
+.three-d-legend button {
+  width: 100%;
+  margin-top: 10px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 4px;
+  background: #333;
+  color: white;
+  cursor: pointer;
+}
+
+.three-d-legend {
+  left: 20px;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.three-d-legend h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.three-d-depth-legend {
+  margin-top: 5px;
+  font-size: 12px;
+}
+
+.three-d-depth-legend span {
+  margin-left: 10px;
+}
+
+.three-d-depth-legend span:first-child {
+  margin-left: 0;
+}
+
+.three-d-depth-legend .shallow { color: #00aaff; }
+.three-d-depth-legend .medium { color: #0055aa; }
+.three-d-depth-legend .deep { color: #001144; }
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);

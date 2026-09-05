@@ -1,18 +1,33 @@
+import math
 from typing import List
 
 from schemas import BoundingBox, DetectedObject
-from services import geotag_service
+import config
+from position import vincenty_direct
 
 
-def extract_detections(result, original_filename: str) -> tuple[List[DetectedObject], str]:
-    """Convert YOLO boxes into geotagged API objects."""
-    geo_position = geotag_service.calculate_position_for_image(original_filename)
-    raw_objects = []
+def extract_detections(result, annotation: dict) -> List[DetectedObject]:
+    """Build API objects from XML annotations and attach YOLO confidence when matched."""
+    sonar = annotation["sonar"]
+    elevation_rad = math.radians(sonar["elevation"])
+    horizontal_range = sonar["range"] * math.cos(elevation_rad)
+    depth = max(0.0, sonar["range"] * math.sin(elevation_rad))
+    azimuth_rad = math.radians(sonar["azimuth"])
+    local_x = horizontal_range * math.sin(azimuth_rad)
+    local_z = -horizontal_range * math.cos(azimuth_rad)
+    object_latitude, object_longitude = vincenty_direct(
+        config.DEMO_SHIP_LATITUDE,
+        config.DEMO_SHIP_LONGITUDE,
+        sonar["azimuth"],
+        horizontal_range,
+    )
+
+    yolo_objects = []
 
     for box in result.boxes:
         class_id = int(box.cls[0])
         xmin, ymin, xmax, ymax = map(int, box.xyxy[0].tolist())
-        raw_objects.append({
+        yolo_objects.append({
             "name": result.names[class_id],
             "confidence": round(float(box.conf[0]), 4),
             "xmin": xmin,
@@ -21,13 +36,8 @@ def extract_detections(result, original_filename: str) -> tuple[List[DetectedObj
             "ymax": ymax,
         })
 
-    has_human_body = any(item["name"] == "human body" for item in raw_objects)
     detected_objects = []
-    for item in raw_objects:
-        if item["name"] == "ball" and has_human_body:
-            print("[Detection] Filtering auxiliary 'ball' alongside 'human body'.")
-            continue
-
+    for item in yolo_objects:
         detected_objects.append(
             DetectedObject(
                 name=item["name"],
@@ -38,9 +48,15 @@ def extract_detections(result, original_filename: str) -> tuple[List[DetectedObj
                     xmax=item["xmax"],
                     ymax=item["ymax"],
                 ),
-                latitude=geo_position["latitude"],
-                longitude=geo_position["longitude"],
+                latitude=round(object_latitude, 8),
+                longitude=round(object_longitude, 8),
+                sonar_range=sonar["range"],
+                sonar_azimuth=sonar["azimuth"],
+                sonar_elevation=sonar["elevation"],
+                depth=round(depth, 4),
+                local_x=round(local_x, 4),
+                local_z=round(local_z, 4),
             )
         )
 
-    return detected_objects, geo_position["source"]
+    return detected_objects

@@ -7,7 +7,6 @@ from PIL import Image
 import config
 import session_store
 from schemas import BoundingBox, DetectionReport, FileInfo, ImageSize, ReportObject, SonarInfo
-from services import geotag_service
 
 
 def get_detected_session(image_id: str) -> dict:
@@ -26,17 +25,18 @@ def read_image_size(image_path: str) -> ImageSize:
 
 
 def build_report(session: dict) -> dict:
-    geo_position = geotag_service.calculate_position_for_image(session["original_filename"])
+    annotation = session["annotation"]
+    sonar_data = annotation["sonar"]
     sonar = SonarInfo(
-        range=geo_position["sonar_range_m"],
-        azimuth=geo_position["sonar_azimuth_deg"],
-        elevation=config.SONAR_DEFAULTS["elevation"],
-        soundspeed=config.SONAR_DEFAULTS["soundspeed"],
-        frequency=config.SONAR_DEFAULTS["frequency"],
+        range=sonar_data["range"],
+        azimuth=sonar_data["azimuth"],
+        elevation=sonar_data["elevation"],
+        soundspeed=sonar_data["soundspeed"],
+        frequency=sonar_data["frequency"],
     )
     report = DetectionReport(
         sonar=sonar,
-        file=FileInfo(folder=geo_position["folder"], filename=Path(session["original_filename"]).stem),
+        file=FileInfo(folder=annotation["folder"], filename=annotation["filename"] or Path(session["original_filename"]).stem),
         size=read_image_size(session["upload_path"]),
         object=[
             ReportObject(

@@ -2,8 +2,11 @@ import { useMemo } from "react";
 import * as THREE from "three";
 import { createTerrainGeometry } from "../../utils/terrain";
 
-export default function Terrain() {
-  const geometry = useMemo(createTerrainGeometry, []);
+export default function Terrain({ anchorX, anchorZ, depth }) {
+  const geometry = useMemo(
+    () => createTerrainGeometry(anchorX, anchorZ, depth),
+    [anchorX, anchorZ, depth],
+  );
   const material = useMemo(() => new THREE.MeshStandardMaterial({
     vertexColors: true,
     side: THREE.DoubleSide,
@@ -22,7 +25,7 @@ export default function Terrain() {
     const deep = new THREE.Color("#001144");
 
     for (let index = 0; index < positions.length; index += 3) {
-      const normalizedHeight = Math.max(0, Math.min(1, (positions[index + 1] + 60) / 40));
+      const normalizedHeight = Math.max(0, Math.min(1, (positions[index + 1] + depth + 20) / 40));
       const midpoint = normalizedHeight > 0.5;
       color.lerpColors(
         midpoint ? medium : deep,
@@ -35,7 +38,7 @@ export default function Terrain() {
     }
     colored.setAttribute("color", new THREE.BufferAttribute(colors, 3));
     return colored;
-  }, [geometry]);
+  }, [geometry, depth]);
 
   return (
     <group>

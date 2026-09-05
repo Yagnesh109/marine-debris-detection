@@ -21,17 +21,24 @@ router = APIRouter(prefix="/api", tags=["1 - Preprocessing"])
 
 
 @router.post("/preprocess", response_model=PreprocessResponse)
-async def preprocess_image(file: UploadFile = File(...)):
-    """Store an uploaded image and echo it back as 'preprocessed'."""
+async def preprocess_image(
+    file: UploadFile = File(...),
+    xml_file: UploadFile = File(...),
+):
+    """Store an uploaded image and its required sonar annotation XML."""
     original_name = Path(file.filename).name
     try:
         preprocessing_service.validate_extension(original_name)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    xml_name = Path(xml_file.filename).name
+    if Path(xml_name).suffix.lower() != ".xml":
+        raise HTTPException(status_code=400, detail="A .xml annotation file is required.")
 
     content = await file.read()
+    xml_content = await xml_file.read()
     image_id, saved_path, preprocessed_path = preprocessing_service.create_upload_session(
-        original_name, content
+        original_name, content, xml_name, xml_content
     )
     print(f"[Preprocess] Received '{original_name}' ({len(content)} bytes) -> {saved_path}")
 

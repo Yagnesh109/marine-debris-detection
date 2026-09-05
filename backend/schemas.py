@@ -24,10 +24,16 @@ class DetectedObject(BaseModel):
     """One YOLO detection joined with its geographic position."""
 
     name: str
-    confidence: float
+    confidence: Optional[float] = None
     bndbox: BoundingBox
     latitude: Optional[float] = None
     longitude: Optional[float] = None
+    sonar_range: float
+    sonar_azimuth: float
+    sonar_elevation: float
+    depth: float
+    local_x: float
+    local_z: float
 
 
 # ── API 1: Preprocessing ──────────────────────────────────────────────────────
@@ -70,7 +76,7 @@ class ImageSize(BaseModel):
 
 class ReportObject(BaseModel):
     name: str
-    confidence: float
+    confidence: Optional[float] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     bndbox: BoundingBox

@@ -1,7 +1,9 @@
 export default function UploadToolbar({
   fileInputRef,
   selectedFile,
+  selectedXmlFile,
   onFileChange,
+  onXmlChange,
   onSubmit,
   disabled,
   uploading,
@@ -24,12 +26,19 @@ export default function UploadToolbar({
           {selectedFile.name}
         </span>
       )}
+      <label className="file-label">
+        Choose XML
+        <input className="file-input" type="file" accept=".xml,text/xml" onChange={onXmlChange} />
+      </label>
+      {selectedXmlFile && (
+        <span className="file-name" title={selectedXmlFile.name}>{selectedXmlFile.name}</span>
+      )}
 
       <button
         type="button"
         className="action-button primary"
         onClick={onSubmit}
-        disabled={!selectedFile || disabled}
+        disabled={!selectedFile || !selectedXmlFile || disabled}
         style={{ marginLeft: "auto" }}
       >
         {uploading ? "Preprocessing..." : detecting ? "AI Detecting..." : "Upload & Detect"}

@@ -1,6 +1,7 @@
-export async function preprocessImage(apiBaseUrl, file) {
+export async function preprocessImage(apiBaseUrl, file, xmlFile) {
   const formData = new FormData();
   formData.append("file", file);
+  formData.append("xml_file", xmlFile);
 
   const response = await fetch(`${apiBaseUrl}/api/preprocess`, {
     method: "POST",

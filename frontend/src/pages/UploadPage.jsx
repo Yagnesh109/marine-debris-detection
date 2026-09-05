@@ -26,6 +26,7 @@ export default function UploadPage({
   onDetectionComplete,
 }) {
   const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedXmlFile, setSelectedXmlFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
 
   const [preprocessInfo, setPreprocessInfo] = useState(null); // { message, imageUrl }
@@ -39,6 +40,7 @@ export default function UploadPage({
   const handleUploadOtherImage = () => {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setSelectedFile(null);
+    setSelectedXmlFile(null);
     setPreviewUrl(null);
     setPreprocessInfo(null);
     setDetectionResult(null);
@@ -67,9 +69,17 @@ export default function UploadPage({
     setPreviewUrl(URL.createObjectURL(file));
   };
 
+  const handleXmlChange = (e) => {
+    setSelectedXmlFile(e.target.files[0] || null);
+    setError("");
+  };
+
   /* -- Full pipeline: preprocess -> detect ------------------------------------ */
   const handleUploadAndDetect = async () => {
-    if (!selectedFile) return;
+    if (!selectedFile || !selectedXmlFile) {
+      setError("Choose both an image and its XML annotation file.");
+      return;
+    }
 
     setUploading(true);
     setError("");
@@ -77,7 +87,7 @@ export default function UploadPage({
     if (onDetectionComplete) onDetectionComplete(null);
 
     try {
-      const { imageId, info } = await preprocessImage(aiApiBaseUrl, selectedFile);
+      const { imageId, info } = await preprocessImage(aiApiBaseUrl, selectedFile, selectedXmlFile);
       setPreprocessInfo(info);
 
       setUploading(false);
@@ -102,7 +112,9 @@ export default function UploadPage({
         <UploadToolbar
           fileInputRef={fileInputRef}
           selectedFile={selectedFile}
+          selectedXmlFile={selectedXmlFile}
           onFileChange={handleFileChange}
+          onXmlChange={handleXmlChange}
           onSubmit={handleUploadAndDetect}
           disabled={isBusy}
           uploading={uploading}

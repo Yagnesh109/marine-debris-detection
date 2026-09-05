@@ -1,26 +1,47 @@
 import { useState } from "react";
 import { Text } from "@react-three/drei";
 import { calculateObjectGeoPosition } from "../../utils/geoUtils";
-import { getTerrainY } from "../../utils/terrain";
 import DetectionObject3D, { hasModelForDetection } from "../ModelLoader";
+
+function DepthGuide({ depth, floorY }) {
+  const floorDepth = Math.max(0, -floorY);
+
+  return (
+    <group>
+      <mesh position={[0, floorDepth / 2, 0]}>
+        <cylinderGeometry args={[0.12, 0.12, floorDepth, 8]} />
+        <meshBasicMaterial color="#73e6ff" transparent opacity={0.75} />
+      </mesh>
+      <Text
+        position={[2, floorDepth / 2, 0]}
+        fontSize={2.2}
+        color="#b9f5ff"
+        anchorX="left"
+        anchorY="middle"
+        outlineWidth={0.18}
+        outlineColor="#06283d"
+      >
+        {`${depth.toFixed(1)} m depth`}
+      </Text>
+    </group>
+  );
+}
 
 export default function DetectionMarker({ detection, onClick }) {
   const [hovered, setHovered] = useState(false);
   const geoInfo = calculateObjectGeoPosition({
-    ...detection,
-    vehicleLatitude: null,
-    vehicleLongitude: null,
-    vehicleHeading: null,
-    sonarRange: null,
-    sonarAzimuth: null,
-    depth: null,
+    sonarRange: detection.sonar_range,
+    sonarAzimuth: detection.sonar_azimuth,
+    depth: detection.depth,
+    localX: detection.local_x,
+    localZ: detection.local_z,
+    vehicleLatitude: detection.latitude,
+    vehicleLongitude: detection.longitude,
   });
-  const position = [geoInfo.x, getTerrainY(geoInfo.x, geoInfo.z) + 2, geoInfo.z];
+  const floorY = -geoInfo.depth;
+  const position = [geoInfo.x, floorY, geoInfo.z];
   const objectName = detection.name?.toLowerCase().trim();
   const modelAvailable = hasModelForDetection(objectName);
-  const labelHeight = ["ship", "ship wreck", "wreck"].includes(objectName)
-    ? 42
-    : objectName === "human body" ? 30 : 26;
 
   return (
     <group
@@ -41,16 +62,21 @@ export default function DetectionMarker({ detection, onClick }) {
       <group>
         <DetectionObject3D detection={detection} scale={2} showLabel={false} />
       </group>
+      <DepthGuide depth={geoInfo.depth} floorY={floorY} />
       <mesh position={[0, -2, 0]}>
         <cylinderGeometry args={[0.3, 0, 4, 8]} />
         <meshStandardMaterial color={hovered ? "#ffaa00" : "#ffffff"} />
       </mesh>
-      <Text position={[0, labelHeight, 0]} fontSize={3} color="white" anchorX="center" anchorY="middle" outlineWidth={0.25} outlineColor="black">
+      <mesh position={[8, 8, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.08, 0.08, 16, 8]} />
+        <meshBasicMaterial color="#ffd166" />
+      </mesh>
+      <Text position={[16, 8, 0]} fontSize={3} color="#ffffff" anchorX="left" anchorY="middle" outlineWidth={0.25} outlineColor="#06283d" maxWidth={32}>
         {detection.name || "Object"}
       </Text>
       {!modelAvailable && (
         <Text
-          position={[12, labelHeight - 3, 0]}
+          position={[16, 4, 0]}
           fontSize={1.8}
           color="#ffd166"
           anchorX="left"

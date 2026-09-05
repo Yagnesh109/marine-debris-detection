@@ -59,9 +59,9 @@ async def detect_objects(image_id: str):
     )
     print(f"[Detection] Annotated image saved -> {annotated_path}")
 
-    # ── Build response with geotagged positions ───────────────────────────────
-    detected_objects, position_source = detection_service.extract_detections(
-        primary_result, session["original_filename"]
+    # ── Build response from the uploaded XML sonar annotation ────────────────
+    detected_objects = detection_service.extract_detections(
+        primary_result, session["annotation"]
     )
     session_store.save_detections(image_id, [obj.model_dump() for obj in detected_objects])
 
@@ -70,9 +70,8 @@ async def detect_objects(image_id: str):
         if detected_objects
         else "No objects detected above the confidence threshold."
     )
-
-    if detected_objects and position_source == "fallback":
-        message += " Positions are approximate (image not found in geotag.csv)."
+    if detected_objects:
+        message += " Object coordinates use demo ship position (18.922, 72.8347)."
 
     print(f"[Detection] {message}")
 

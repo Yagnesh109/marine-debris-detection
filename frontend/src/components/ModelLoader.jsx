@@ -1,21 +1,23 @@
-import React, { useMemo, Suspense, useState } from 'react';
+import React, { useMemo, Suspense } from 'react';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
+import { AI_API_BASE_URL } from '../config/api';
 
 /**
  * Map detection object names to 3D model file paths
  * These files are served by the FastAPI backend from backend/3dmodels.
  */
-const MODEL_BASE_URL = process.env.REACT_APP_AI_BACKEND_URL || 'http://localhost:8000';
+const MODEL_BASE_URL = AI_API_BASE_URL.replace(/\/$/, '');
+const modelUrl = (filename) => `${MODEL_BASE_URL}/3dmodels/${encodeURIComponent(filename)}`;
 const MODEL_MAP = {
-  'human body': `${MODEL_BASE_URL}/3dmodels/human%20body.glb`,
-  'ghost net': `${MODEL_BASE_URL}/3dmodels/ghost%20net.glb`,
-  'ship': `${MODEL_BASE_URL}/3dmodels/ship.glb`,
-  'ship wreck': `${MODEL_BASE_URL}/3dmodels/ship.glb`,
-  'plane wreck': `${MODEL_BASE_URL}/3dmodels/plane.glb`,
-  'plane': `${MODEL_BASE_URL}/3dmodels/plane.glb`,
-  'wreck': `${MODEL_BASE_URL}/3dmodels/ship.glb`,
-  'net': `${MODEL_BASE_URL}/3dmodels/ghost%20net.glb`,
+  'human body': modelUrl('human body.glb'),
+  'ghost net': modelUrl('ghost net.glb'),
+  'ship': modelUrl('ship.glb'),
+  'ship wreck': modelUrl('ship.glb'),
+  'plane wreck': modelUrl('plane.glb'),
+  'plane': modelUrl('plane.glb'),
+  'wreck': modelUrl('ship.glb'),
+  'net': modelUrl('ghost net.glb'),
 };
 
 export function hasModelForDetection(name) {
@@ -68,20 +70,8 @@ const MODEL_TARGET_SIZE = {
 };
 
 function ModelWithGLTF({ modelPath, objectName, scale = 1 }) {
-  const [loadError, setLoadError] = useState(null);
-  
-  // Load the model using useGLTF hook - MUST BE CALLED FIRST
-  const gltfData = useGLTF(modelPath, undefined, 
-    (data) => {
-      console.log(`✓ Model loaded successfully: ${modelPath}`);
-    },
-    (e) => {
-      console.error(`❌ GLTF loading error for ${modelPath}:`, e);
-      setLoadError(e.message || 'Failed to load model');
-    }
-  );
-  
-  // MUST call useMemo BEFORE any early returns (React hooks rule)
+  const gltfData = useGLTF(modelPath);
+
   const clonedScene = useMemo(() => {
     // Only proceed if we have a valid scene
     if (!gltfData || !gltfData.scene) {
@@ -130,12 +120,6 @@ function ModelWithGLTF({ modelPath, objectName, scale = 1 }) {
     }
   }, [gltfData, modelPath, objectName]);
 
-  // NOW we can do conditional logic after all hooks are called
-  if (loadError) {
-    console.warn(`⚠️ Model failed to load: ${modelPath} - ${loadError}`);
-    return null;
-  }
-  
   if (!clonedScene) {
     if (!gltfData || !gltfData.scene) {
       console.log(`⏳ Loading model... ${modelPath}`);
@@ -146,7 +130,10 @@ function ModelWithGLTF({ modelPath, objectName, scale = 1 }) {
   }
 
   return (
-    <group scale={[scale, scale, scale]}>
+    <group
+      scale={[scale, scale, scale]}
+      rotation={objectName === 'human body' ? [Math.PI / 2, 0, Math.PI] : [0, 0, 0]}
+    >
       <primitive object={clonedScene} />
     </group>
   );

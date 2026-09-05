@@ -11,6 +11,14 @@ export default function MapPage({ apiBaseUrl, refreshKey, detectionPoints }) {
   const [userLocation, setUserLocation] = useState(null);
   const [routeData, setRouteData] = useState([]);
   const [loadError, setLoadError] = useState("");
+  const primaryDetection = useMemo(() => {
+    return detectionPoints.reduce((highest, detection) => {
+      if (!highest) return detection;
+      return (Number(detection.confidence) || 0) > (Number(highest.confidence) || 0)
+        ? detection
+        : highest;
+    }, null);
+  }, [detectionPoints]);
 
   // Two exclusive views:
   //   - detections present -> show ONLY the objects found in the uploaded image
@@ -19,10 +27,10 @@ export default function MapPage({ apiBaseUrl, refreshKey, detectionPoints }) {
 
   const mappedPoints = useMemo(() => {
     if (isDetectionView) {
-      return normalizeDetectionPoints(detectionPoints);
+      return normalizeDetectionPoints(primaryDetection ? [primaryDetection] : []);
     }
     return normalizeGeneratedPositions(routeData);
-  }, [routeData, detectionPoints, isDetectionView]);
+  }, [routeData, primaryDetection, isDetectionView]);
 
   const handleMapClick = useCallback((coords) => {
     setSelectedDetection(null);

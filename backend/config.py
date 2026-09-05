@@ -30,20 +30,7 @@ CALCULATED_POSITIONS_PATH = BASE_DIR / "geotag_calculated.json"
 CONFIDENCE_THRESHOLD = 0.25
 ALLOWED_EXTENSIONS = {".bmp", ".png", ".jpg", ".jpeg"}
 
-# ── Sonar metadata defaults (used in the generated report) ────────────────────
-SONAR_DEFAULTS = {
-    "elevation": 12,
-    "soundspeed": 1466.2,
-    "frequency": "1200k",
-}
-
-# ── Fallback vehicle state ────────────────────────────────────────────────────
-# Used when an uploaded image has no matching row in geotag.csv: the object
-# position is then estimated from this assumed vehicle GPS + sonar geometry.
-FALLBACK_VEHICLE = {
-    "latitude": 18.922,       # vehicle GPS latitude  (deg)
-    "longitude": 72.8347,     # vehicle GPS longitude (deg)
-    "heading_deg": 90.0,      # vehicle heading, clockwise from North
-    "range_m": 15.0,          # assumed distance to the detected object
-    "azimuth_deg": 0.0,       # assumed bearing relative to vehicle heading
-}
+# Sonar geometry is supplied by each uploaded XML annotation.
+# Demo ship origin used until live ship GPS data is connected.
+DEMO_SHIP_LATITUDE = 18.922
+DEMO_SHIP_LONGITUDE = 72.8347

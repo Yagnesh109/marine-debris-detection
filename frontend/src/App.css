@@ -93,7 +93,7 @@
   width: 100%;
   height: 100%;
   position: relative;
-  background: #0a192f;
+  background: linear-gradient(180deg, #b4e0e8 0%, #68aec0 28%, #0b536a 55%, #020b18 100%);
 }
 
 .three-d-details,
@@ -160,6 +160,10 @@
 .three-d-depth-legend .shallow { color: #00aaff; }
 .three-d-depth-legend .medium { color: #0055aa; }
 .three-d-depth-legend .deep { color: #001144; }
+
+.three-d-page canvas {
+  display: block;
+}
 
 @keyframes App-logo-spin {
   from {

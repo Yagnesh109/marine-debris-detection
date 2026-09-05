@@ -23,45 +23,73 @@ function DetectionDetails({ selectedObj, onClose }) {
 function ViewerLegend({ onNavigate }) {
   return (
     <div className="three-d-legend">
-      <h2>3D Bathymetric Map</h2>
       <div className="three-d-depth-legend">
         <span className="shallow">■</span> Shallow
         <span className="medium">■</span> Medium
         <span className="deep">■</span> Deep
       </div>
-      <button type="button" onClick={() => onNavigate?.("dashboard")}>
-        Back to Dashboard
-      </button>
     </div>
+  );
+}
+
+function OceanSurface() {
+  return (
+    <group>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
+        <planeGeometry args={[500, 500, 40, 40]} />
+        <meshPhysicalMaterial
+          color="#087f9b"
+          transparent
+          opacity={0.22}
+          roughness={0.08}
+          metalness={0.1}
+          transmission={0.15}
+          side={THREE.DoubleSide}
+          depthWrite={false}
+        />
+      </mesh>
+      <gridHelper args={[500, 40, "#55d9e8", "#155d79"]} position={[0, -0.15, 0]} material-opacity={0.18} material-transparent />
+      <mesh position={[0, -0.5, 0]}>
+        <boxGeometry args={[500, 1, 500]} />
+        <meshBasicMaterial color="#006b86" transparent opacity={0.08} depthWrite={false} side={THREE.DoubleSide} />
+      </mesh>
+    </group>
   );
 }
 
 export default function ThreeDMapPage({ detections = [], onNavigate }) {
   const [selectedObj, setSelectedObj] = useState(null);
+  const primaryDetection = detections.reduce((highest, detection) => {
+    if (!highest) return detection;
+    return (Number(detection.confidence) || 0) > (Number(highest.confidence) || 0)
+      ? detection
+      : highest;
+  }, null);
+  const anchorX = primaryDetection ? Number(primaryDetection.local_x) : 0;
+  const anchorZ = primaryDetection ? Number(primaryDetection.local_z) : 0;
+  const anchorDepth = primaryDetection ? Number(primaryDetection.depth) : 40;
+  const seabedDepth = Number.isFinite(anchorDepth) ? anchorDepth : 40;
 
   return (
     <div className="three-d-page">
       <Canvas camera={{ position: [0, 60, 120], fov: 60 }}>
+        <fog attach="fog" args={["#042b44", 120, 430]} />
         <ambientLight intensity={0.4} color="#aaccff" />
         <hemisphereLight skyColor="#ffffff" groundColor="#000033" intensity={0.6} />
         <directionalLight position={[100, 100, 50]} intensity={0.8} castShadow />
-        <gridHelper args={[500, 50, "#ffffff", "#ffffff"]} position={[0, -55, 0]} material-opacity={0.1} material-transparent />
-        <mesh position={[0, -15, 0]}>
-          <boxGeometry args={[500, 50, 500]} />
-          <meshStandardMaterial color="#0088ff" transparent opacity={0.1} depthWrite={false} side={THREE.DoubleSide} />
-        </mesh>
+        <OceanSurface />
         <mesh position={[0, -105, 0]}>
           <boxGeometry args={[500, 100, 500]} />
           <meshStandardMaterial color="#000714" roughness={1} />
         </mesh>
-        <Terrain />
-        {detections.map((detection, index) => (
+        <Terrain anchorX={anchorX} anchorZ={anchorZ} depth={seabedDepth} />
+        {primaryDetection && (
           <DetectionMarker
-            key={`${detection.name}-${index}`}
-            detection={detection}
+            key={`${primaryDetection.name}-primary`}
+            detection={primaryDetection}
             onClick={(object, geoInfo) => setSelectedObj({ detection: object, geoInfo })}
           />
-        ))}
+        )}
         <OrbitControls
           enableDamping
           dampingFactor={0.05}

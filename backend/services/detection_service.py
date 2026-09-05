@@ -53,6 +53,8 @@ def extract_detections(result, annotation: dict) -> List[DetectedObject]:
                 sonar_range=sonar["range"],
                 sonar_azimuth=sonar["azimuth"],
                 sonar_elevation=sonar["elevation"],
+                sonar_soundspeed=sonar.get("soundspeed"),
+                sonar_frequency=sonar.get("frequency"),
                 depth=round(depth, 4),
                 local_x=round(local_x, 4),
                 local_z=round(local_z, 4),

@@ -19,6 +19,7 @@ const MODEL_MAP = {
   'wreck': modelUrl('ship.glb'),
   'net': modelUrl('ghost net.glb'),
 };
+const ROV_MODEL_URL = modelUrl('rov.glb');
 
 export function hasModelForDetection(name) {
   const objectName = name ? name.toLowerCase().trim() : "";
@@ -67,6 +68,7 @@ const MODEL_TARGET_SIZE = {
   'wreck': 18,
   'plane': 16,
   'plane wreck': 16,
+  rov: 14,
 };
 
 function ModelWithGLTF({ modelPath, objectName, scale = 1 }) {
@@ -194,6 +196,16 @@ export function DetectionObject3D({ detection, scale = 1, showLabel = true }) {
         </ModelErrorBoundary>
       </Suspense>
     </group>
+  );
+}
+
+export function ROVModel({ scale = 1 }) {
+  return (
+    <Suspense fallback={null}>
+      <ModelErrorBoundary>
+        <ModelWithGLTF modelPath={ROV_MODEL_URL} objectName="rov" scale={scale} />
+      </ModelErrorBoundary>
+    </Suspense>
   );
 }
 

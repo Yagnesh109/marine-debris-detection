@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls, Text } from "@react-three/drei";
 import * as THREE from "three";
 import DetectionMarker from "../components/threeD/DetectionMarker";
+import { ROVModel } from "../components/ModelLoader";
 import Terrain from "../components/threeD/Terrain";
 
 function DetectionDetails({ selectedObj, onClose }) {
@@ -74,6 +75,7 @@ export default function ThreeDMapPage({ detections = [], onNavigate }) {
   const seabedDepth = Number.isFinite(maxDepth) ? maxDepth : 40;
   const seabedThickness = Math.max(300, seabedDepth * 3 + 120);
   const seabedY = -(seabedDepth + seabedThickness / 2);
+  const rovY = -Math.max(2, seabedDepth * 0.5);
 
   return (
     <div className="three-d-page">
@@ -88,6 +90,12 @@ export default function ThreeDMapPage({ detections = [], onNavigate }) {
           <meshStandardMaterial color="#000714" roughness={1} />
         </mesh>
         <Terrain anchorX={anchorX} anchorZ={anchorZ} depth={seabedDepth} />
+        <group position={[0, rovY, 0]}>
+          <ROVModel scale={1.15} />
+          <Text position={[10, 8, 0]} fontSize={2.2} color="#ffd166" anchorX="left" anchorY="middle" outlineWidth={0.15} outlineColor="#06283d">
+            ROV
+          </Text>
+        </group>
         {primaryDetection && (
           <DetectionMarker
             key={`${primaryDetection.name}-primary`}

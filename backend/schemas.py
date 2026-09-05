@@ -31,6 +31,8 @@ class DetectedObject(BaseModel):
     sonar_range: float
     sonar_azimuth: float
     sonar_elevation: float
+    sonar_soundspeed: Optional[float] = None
+    sonar_frequency: Optional[str] = None
     depth: float
     local_x: float
     local_z: float

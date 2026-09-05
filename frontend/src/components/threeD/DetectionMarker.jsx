@@ -35,14 +35,17 @@ export default function DetectionMarker({ detection, seabedDepth = 40, anchorX =
   const geoInfo = calculateObjectGeoPosition({
     sonarRange: detection.sonar_range,
     sonarAzimuth: detection.sonar_azimuth,
+    sonarElevation: detection.sonar_elevation,
+    soundSpeed: detection.sonar_soundspeed,
+    frequency: detection.sonar_frequency,
     depth: detection.depth,
     localX: detection.local_x,
     localZ: detection.local_z,
     vehicleLatitude: detection.latitude,
     vehicleLongitude: detection.longitude,
   });
-  const displayX = geoInfo.x + 14;
-  const displayZ = geoInfo.z + 6;
+  const displayX = geoInfo.x;
+  const displayZ = geoInfo.z;
   const objectY = getTerrainY(displayX, displayZ, anchorX, anchorZ, seabedDepth);
   const measurementDepth = geoInfo.depth;
   const position = [displayX, objectY, displayZ];
@@ -75,8 +78,9 @@ export default function DetectionMarker({ detection, seabedDepth = 40, anchorX =
         <cylinderGeometry args={[0.08, 0.08, 16, 8]} />
         <meshBasicMaterial color="#ffd166" />
       </mesh>
+
       <Text position={[16, 8, 0]} fontSize={3} color="#ffffff" anchorX="left" anchorY="middle" outlineWidth={0.25} outlineColor="#06283d" maxWidth={32}>
-        {detection.name || "Object"}
+          {detection.name || "Object"}
       </Text>
     </group>
   );

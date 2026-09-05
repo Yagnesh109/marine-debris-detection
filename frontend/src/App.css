@@ -139,6 +139,24 @@
   background: rgba(0, 0, 0, 0.5);
 }
 
+.three-d-visualization-note {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  z-index: 10;
+  width: min(680px, calc(100% - 40px));
+  transform: translateX(-50%);
+  padding: 8px 14px;
+  color: rgba(235, 250, 255, 0.9);
+  background: rgba(3, 30, 45, 0.62);
+  border: 1px solid rgba(115, 230, 255, 0.28);
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
+  pointer-events: none;
+}
+
 .three-d-legend h2 {
   margin: 0;
   font-size: 18px;

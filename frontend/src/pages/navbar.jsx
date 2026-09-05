@@ -6,6 +6,18 @@ const Navbar = ({
   hasDetections,
   onGenerateReport,
 }) => {
+  const renderLockedAction = (button, className = "") => {
+    if (!hasDetections) {
+      return (
+        <span className={`navbar-tab-tooltip ${className}`} data-tooltip="Please upload and analyze data">
+          {button}
+        </span>
+      );
+    }
+
+    return button;
+  };
+
   return (
     <nav className="main-navbar" aria-label="Main navigation">
       <button
@@ -27,7 +39,7 @@ const Navbar = ({
       </button>
 
       <>
-        <span className="navbar-tab-tooltip" data-tooltip="Please upload and analyze data">
+        {renderLockedAction(
           <button
             type="button"
             onClick={() => onNavigate("maps")}
@@ -37,9 +49,9 @@ const Navbar = ({
           >
             Show Object on Map
           </button>
-        </span>
+        )}
 
-        <span className="navbar-tab-tooltip" data-tooltip="Please upload and analyze data">
+        {renderLockedAction(
           <button
             type="button"
             onClick={() => onNavigate("3d-map")}
@@ -49,9 +61,9 @@ const Navbar = ({
           >
             Show in 3D Map
           </button>
-        </span>
+        )}
 
-        <span className="navbar-tab-tooltip" data-tooltip="Please upload and analyze data">
+        {renderLockedAction(
           <button
             type="button"
             onClick={() => onNavigate("annotated-image")}
@@ -61,9 +73,9 @@ const Navbar = ({
           >
             Show Object on Image
           </button>
-        </span>
+        )}
 
-        <span className="navbar-tab-tooltip navbar-report-tooltip" data-tooltip="Please upload and analyze data">
+        {renderLockedAction(
           <button
             type="button"
             className={`navbar-tab${activeTab === "report" ? " active" : ""}`}
@@ -72,8 +84,9 @@ const Navbar = ({
             disabled={!hasDetections}
           >
             Generate Report
-          </button>
-        </span>
+          </button>,
+          "navbar-report-tooltip"
+        )}
       </>
     </nav>
   );

@@ -66,9 +66,14 @@ export default function ThreeDMapPage({ detections = [], onNavigate }) {
       : highest;
   }, null);
   const anchorX = primaryDetection ? Number(primaryDetection.local_x) : 0;
-  const anchorZ = primaryDetection ? Number(primaryDetection.local_z) : 0;
-  const anchorDepth = primaryDetection ? Number(primaryDetection.depth) : 40;
-  const seabedDepth = Number.isFinite(anchorDepth) ? anchorDepth : 40;
+  const anchorZ = primaryDetection ? -Number(primaryDetection.local_z) : 0;
+  const maxDepth = detections.reduce((maxValue, detection) => {
+    const depth = Number(detection.depth);
+    return Number.isFinite(depth) ? Math.max(maxValue, depth) : maxValue;
+  }, 40);
+  const seabedDepth = Number.isFinite(maxDepth) ? maxDepth : 40;
+  const seabedThickness = Math.max(300, seabedDepth * 3 + 120);
+  const seabedY = -(seabedDepth + seabedThickness / 2);
 
   return (
     <div className="three-d-page">
@@ -78,8 +83,8 @@ export default function ThreeDMapPage({ detections = [], onNavigate }) {
         <hemisphereLight skyColor="#ffffff" groundColor="#000033" intensity={0.6} />
         <directionalLight position={[100, 100, 50]} intensity={0.8} castShadow />
         <OceanSurface />
-        <mesh position={[0, -105, 0]}>
-          <boxGeometry args={[500, 100, 500]} />
+        <mesh position={[0, seabedY, 0]}>
+          <boxGeometry args={[500, seabedThickness, 500]} />
           <meshStandardMaterial color="#000714" roughness={1} />
         </mesh>
         <Terrain anchorX={anchorX} anchorZ={anchorZ} depth={seabedDepth} />
@@ -87,6 +92,9 @@ export default function ThreeDMapPage({ detections = [], onNavigate }) {
           <DetectionMarker
             key={`${primaryDetection.name}-primary`}
             detection={primaryDetection}
+            seabedDepth={seabedDepth}
+            anchorX={anchorX}
+            anchorZ={anchorZ}
             onClick={(object, geoInfo) => setSelectedObj({ detection: object, geoInfo })}
           />
         )}
@@ -100,6 +108,9 @@ export default function ThreeDMapPage({ detections = [], onNavigate }) {
       </Canvas>
       <DetectionDetails selectedObj={selectedObj} onClose={() => setSelectedObj(null)} />
       <ViewerLegend onNavigate={onNavigate} />
+      <div className="three-d-visualization-note" role="note">
+        3D visualization for reference only. This is a visual representation, not a physical or geographic measurement.
+      </div>
     </div>
   );
 }

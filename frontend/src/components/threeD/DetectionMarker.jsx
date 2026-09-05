@@ -1,33 +1,36 @@
 import { useState } from "react";
 import { Text } from "@react-three/drei";
 import { calculateObjectGeoPosition } from "../../utils/geoUtils";
-import DetectionObject3D, { hasModelForDetection } from "../ModelLoader";
+import { getTerrainY } from "../../utils/terrain";
+import DetectionObject3D from "../ModelLoader";
 
-function DepthGuide({ depth, floorY }) {
-  const floorDepth = Math.max(0, -floorY);
+function DepthGuide({ depth, startY, endY }) {
+  const lineLength = Math.max(1, Math.abs(endY - startY));
+  const centerY = (startY + endY) / 2;
 
   return (
     <group>
-      <mesh position={[0, floorDepth / 2, 0]}>
-        <cylinderGeometry args={[0.12, 0.12, floorDepth, 8]} />
-        <meshBasicMaterial color="#73e6ff" transparent opacity={0.75} />
+      <mesh position={[0, centerY, 0]}>
+        <cylinderGeometry args={[0.08, 0.08, lineLength, 8]} />
+        <meshBasicMaterial color="#73e6ff" transparent opacity={0.85} depthTest={false} />
       </mesh>
       <Text
-        position={[2, floorDepth / 2, 0]}
-        fontSize={2.2}
+        position={[2.2, centerY, 0]}
+        fontSize={1.4}
         color="#b9f5ff"
         anchorX="left"
         anchorY="middle"
-        outlineWidth={0.18}
+        outlineWidth={0.12}
         outlineColor="#06283d"
+        depthOffset={-1}
       >
-        {`${depth.toFixed(1)} m depth`}
+        {`${depth.toFixed(1)} m`}
       </Text>
     </group>
   );
 }
 
-export default function DetectionMarker({ detection, onClick }) {
+export default function DetectionMarker({ detection, seabedDepth = 40, anchorX = 0, anchorZ = 0, onClick }) {
   const [hovered, setHovered] = useState(false);
   const geoInfo = calculateObjectGeoPosition({
     sonarRange: detection.sonar_range,
@@ -38,10 +41,11 @@ export default function DetectionMarker({ detection, onClick }) {
     vehicleLatitude: detection.latitude,
     vehicleLongitude: detection.longitude,
   });
-  const floorY = -geoInfo.depth;
-  const position = [geoInfo.x, floorY, geoInfo.z];
-  const objectName = detection.name?.toLowerCase().trim();
-  const modelAvailable = hasModelForDetection(objectName);
+  const displayX = geoInfo.x + 14;
+  const displayZ = geoInfo.z + 6;
+  const objectY = getTerrainY(displayX, displayZ, anchorX, anchorZ, seabedDepth);
+  const measurementDepth = geoInfo.depth;
+  const position = [displayX, objectY, displayZ];
 
   return (
     <group
@@ -60,9 +64,9 @@ export default function DetectionMarker({ detection, onClick }) {
       }}
     >
       <group>
-        <DetectionObject3D detection={detection} scale={2} showLabel={false} />
+        <DetectionObject3D detection={detection} scale={1.8} showLabel={false} />
       </group>
-      <DepthGuide depth={geoInfo.depth} floorY={floorY} />
+      <DepthGuide depth={measurementDepth} startY={-objectY} endY={0} />
       <mesh position={[0, -2, 0]}>
         <cylinderGeometry args={[0.3, 0, 4, 8]} />
         <meshStandardMaterial color={hovered ? "#ffaa00" : "#ffffff"} />
@@ -74,20 +78,6 @@ export default function DetectionMarker({ detection, onClick }) {
       <Text position={[16, 8, 0]} fontSize={3} color="#ffffff" anchorX="left" anchorY="middle" outlineWidth={0.25} outlineColor="#06283d" maxWidth={32}>
         {detection.name || "Object"}
       </Text>
-      {!modelAvailable && (
-        <Text
-          position={[16, 4, 0]}
-          fontSize={1.8}
-          color="#ffd166"
-          anchorX="left"
-          anchorY="middle"
-          maxWidth={30}
-          outlineWidth={0.15}
-          outlineColor="black"
-        >
-          {`3D model not available for ${detection.name || "object"}`}
-        </Text>
-      )}
     </group>
   );
 }

@@ -20,9 +20,9 @@ export default function Terrain({ anchorX, anchorZ, depth }) {
     const positions = colored.attributes.position.array;
     const colors = new Float32Array(positions.length);
     const color = new THREE.Color();
-    const shallow = new THREE.Color("#00aaff");
-    const medium = new THREE.Color("#0055aa");
-    const deep = new THREE.Color("#001144");
+    const shallow = new THREE.Color("#4c8790");
+    const medium = new THREE.Color("#24566b");
+    const deep = new THREE.Color("#0b2638");
 
     for (let index = 0; index < positions.length; index += 3) {
       const normalizedHeight = Math.max(0, Math.min(1, (positions[index + 1] + depth + 20) / 40));
@@ -44,7 +44,7 @@ export default function Terrain({ anchorX, anchorZ, depth }) {
     <group>
       <mesh geometry={coloredGeometry} material={material} receiveShadow />
       <mesh geometry={coloredGeometry}>
-        <meshBasicMaterial color="#ffffff" wireframe transparent opacity={0.15} />
+        <meshBasicMaterial color="#75aeba" wireframe transparent opacity={0.035} />
       </mesh>
     </group>
   );

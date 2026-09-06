@@ -77,7 +77,12 @@ def calculate_position_for_image(image_filename: str) -> Dict[str, Any]:
     else:
         print(f"[Geotag] No CSV entry for '{image_filename}' - using fallback vehicle state")
         source = "fallback"
-        fallback = config.FALLBACK_VEHICLE
+        fallback = config.random_ship_location()
+        fallback.update({
+            "heading_deg": 0.0,
+            "range_m": 0.0,
+            "azimuth_deg": 0.0,
+        })
         vehicle_lat = fallback["latitude"]
         vehicle_lon = fallback["longitude"]
         vehicle_heading = fallback["heading_deg"]

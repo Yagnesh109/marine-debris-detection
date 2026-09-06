@@ -60,8 +60,9 @@ async def detect_objects(image_id: str):
     print(f"[Detection] Annotated image saved -> {annotated_path}")
 
     # ── Build response from the uploaded XML sonar annotation ────────────────
+    ship_location = config.random_ship_location()
     detected_objects = detection_service.extract_detections(
-        primary_result, session["annotation"]
+        primary_result, session["annotation"], ship_location
     )
     session_store.save_detections(image_id, [obj.model_dump() for obj in detected_objects])
 
@@ -70,9 +71,6 @@ async def detect_objects(image_id: str):
         if detected_objects
         else "No objects detected above the confidence threshold."
     )
-    if detected_objects:
-        message += " Object coordinates use demo ship position (18.922, 72.8347)."
-
     print(f"[Detection] {message}")
 
     return DetectionResponse(
@@ -80,5 +78,8 @@ async def detect_objects(image_id: str):
         message=message,
         image_id=image_id,
         objects_detected=detected_objects,
+        ship_latitude=ship_location["latitude"],
+        ship_longitude=ship_location["longitude"],
+        ship_water_body=ship_location["name"],
         annotated_image_url=f"/media/results/{image_id}/annotated.jpg",
     )

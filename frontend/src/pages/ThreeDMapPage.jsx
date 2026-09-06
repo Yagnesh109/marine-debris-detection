@@ -79,7 +79,7 @@ export default function ThreeDMapPage({ detections = [], onNavigate }) {
 
   return (
     <div className="three-d-page">
-      <Canvas camera={{ position: [0, 60, 120], fov: 60 }}>
+      <Canvas camera={{ position: [0, 45, 105], fov: 52 }}>
         <fog attach="fog" args={["#042b44", 120, 430]} />
         <ambientLight intensity={0.4} color="#aaccff" />
         <hemisphereLight skyColor="#ffffff" groundColor="#000033" intensity={0.6} />
@@ -87,30 +87,31 @@ export default function ThreeDMapPage({ detections = [], onNavigate }) {
         <OceanSurface />
         <mesh position={[0, seabedY, 0]}>
           <boxGeometry args={[500, seabedThickness, 500]} />
-          <meshStandardMaterial color="#000714" roughness={1} />
+          <meshStandardMaterial color="#081b27" roughness={1} />
         </mesh>
         <Terrain anchorX={anchorX} anchorZ={anchorZ} depth={seabedDepth} />
-        <group position={[0, rovY, 0]}>
-          <ROVModel scale={1.15} />
-          <Text position={[10, 8, 0]} fontSize={2.2} color="#ffd166" anchorX="left" anchorY="middle" outlineWidth={0.15} outlineColor="#06283d">
+        <group position={[-18, rovY, 0]}>
+          <ROVModel scale={1.25} />
+          <Text position={[16, 12, 0]} fontSize={4} color="#ffd166" anchorX="left" anchorY="middle" outlineWidth={0.2} outlineColor="#06283d">
             ROV
           </Text>
         </group>
-        {primaryDetection && (
+        {detections.map((detection, index) => (
           <DetectionMarker
-            key={`${primaryDetection.name}-primary`}
-            detection={primaryDetection}
+            key={`${detection.name || "object"}-${index}`}
+            detection={detection}
             seabedDepth={seabedDepth}
             anchorX={anchorX}
             anchorZ={anchorZ}
             onClick={(object, geoInfo) => setSelectedObj({ detection: object, geoInfo })}
           />
-        )}
+        ))}
         <OrbitControls
           enableDamping
           dampingFactor={0.05}
           minDistance={10}
-          maxDistance={300}
+          maxDistance={220}
+          target={[0, -seabedDepth, 0]}
           maxPolarAngle={Math.PI / 2 - 0.05}
         />
       </Canvas>

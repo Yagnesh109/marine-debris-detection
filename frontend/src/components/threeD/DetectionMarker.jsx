@@ -16,7 +16,7 @@ function DepthGuide({ depth, startY, endY }) {
       </mesh>
       <Text
         position={[2.2, centerY, 0]}
-        fontSize={1.4}
+        fontSize={2.8}
         color="#b9f5ff"
         anchorX="left"
         anchorY="middle"
@@ -67,19 +67,19 @@ export default function DetectionMarker({ detection, seabedDepth = 40, anchorX =
       }}
     >
       <group>
-        <DetectionObject3D detection={detection} scale={1.8} showLabel={false} />
+        <DetectionObject3D detection={detection} scale={2.8} showLabel={false} />
       </group>
       <DepthGuide depth={measurementDepth} startY={-objectY} endY={0} />
       <mesh position={[0, -2, 0]}>
         <cylinderGeometry args={[0.3, 0, 4, 8]} />
         <meshStandardMaterial color={hovered ? "#ffaa00" : "#ffffff"} />
       </mesh>
-      <mesh position={[8, 8, 0]} rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.08, 0.08, 16, 8]} />
+      <mesh position={[12, 12, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.14, 0.14, 24, 8]} />
         <meshBasicMaterial color="#ffd166" />
       </mesh>
 
-      <Text position={[16, 8, 0]} fontSize={3} color="#ffffff" anchorX="left" anchorY="middle" outlineWidth={0.25} outlineColor="#06283d" maxWidth={32}>
+      <Text position={[24, 12, 0]} fontSize={5.5} color="#ffffff" anchorX="left" anchorY="middle" outlineWidth={0.35} outlineColor="#06283d" maxWidth={48}>
           {detection.name || "Object"}
       </Text>
     </group>

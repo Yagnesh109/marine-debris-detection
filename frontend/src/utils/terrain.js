@@ -1,9 +1,10 @@
 import * as THREE from "three";
 
 function terrainWave(x, z) {
-  const y1 = Math.sin(x / 100) * 12 + Math.cos(z / 100) * 12;
-  const y2 = Math.sin((x + z) / 50) * 5;
-  return y1 + y2;
+  const broadShape = Math.sin(x / 100) * 12 + Math.cos(z / 100) * 12;
+  const ridges = Math.sin((x + z) / 50) * 5;
+  const smallUndulation = Math.sin(x / 19) * 1.8 + Math.cos(z / 27) * 1.4;
+  return broadShape + ridges + smallUndulation;
 }
 
 export function getTerrainY(x, z, anchorX, anchorZ, anchorDepth) {

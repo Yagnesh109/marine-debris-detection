@@ -61,14 +61,14 @@ export function FallbackCube({ size = 8, color = '#ffaa00' }) {
  * Renders only the requested backend model; failures render nothing.
  */
 const MODEL_TARGET_SIZE = {
-  'human body': 12,
-  'ghost net': 12,
-  'ship': 18,
-  'ship wreck': 18,
-  'wreck': 18,
-  'plane': 16,
-  'plane wreck': 16,
-  rov: 14,
+  'human body': 24,
+  'ghost net': 24,
+  'ship': 32,
+  'ship wreck': 32,
+  'wreck': 32,
+  'plane': 30,
+  'plane wreck': 30,
+  rov: 24,
 };
 
 function ModelWithGLTF({ modelPath, objectName, scale = 1 }) {

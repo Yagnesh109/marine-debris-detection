@@ -2,10 +2,25 @@ export default function DetectionResults({ detectionResult }) {
   if (!detectionResult) return null;
 
   const detections = detectionResult.objects_detected || [];
+  const hasShipPosition = Number.isFinite(Number(detectionResult.ship_latitude)) &&
+    Number.isFinite(Number(detectionResult.ship_longitude));
   return (
     <section className="results-section">
       <h3 className="results-heading">Detection Results</h3>
       <p className="results-summary">{detectionResult.message}</p>
+
+      {hasShipPosition && (
+        <div className="ship-position-summary">
+          <strong>Demo ship position used</strong>
+          <span>{detectionResult.ship_water_body}</span>
+          <span className="mono">
+            Latitude {Number(detectionResult.ship_latitude).toFixed(6)}
+          </span>
+          <span className="mono">
+            Longitude {Number(detectionResult.ship_longitude).toFixed(6)}
+          </span>
+        </div>
+      )}
 
       {detections.length > 0 && (
         <div className="table-scroll">

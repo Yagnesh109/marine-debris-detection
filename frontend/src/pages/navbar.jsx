@@ -66,18 +66,6 @@ const Navbar = ({
         {renderLockedAction(
           <button
             type="button"
-            onClick={() => onNavigate("annotated-image")}
-            aria-current={activeTab === "annotated-image" ? "page" : undefined}
-            className={`navbar-tab${activeTab === "annotated-image" ? " active" : ""}`}
-            disabled={!hasDetections}
-          >
-            Show Object on Image
-          </button>
-        )}
-
-        {renderLockedAction(
-          <button
-            type="button"
             className={`navbar-tab${activeTab === "report" ? " active" : ""}`}
             style={{ marginLeft: "auto" }}
             onClick={onGenerateReport}

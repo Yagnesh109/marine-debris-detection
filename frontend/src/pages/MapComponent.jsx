@@ -56,7 +56,7 @@ const mapViews = {
 
 const MapComponent = ({
   center = [12.9716, 77.5946],
-  zoom = 12,
+  zoom = 8,
   onLocationFound,
   onMapClick,
   onPointClick,
@@ -68,8 +68,8 @@ const MapComponent = ({
   pathOpacity = 0.9,
   showMarkers = true,
   fitRouteBounds = true,
-  overviewZoom = 6,
-  markerZoom = 18,
+  overviewZoom = 4,
+  markerZoom = 10,
 }) => {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);

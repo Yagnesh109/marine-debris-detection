@@ -6,7 +6,7 @@ import config
 from position import vincenty_direct
 
 
-def extract_detections(result, annotation: dict) -> List[DetectedObject]:
+def extract_detections(result, annotation: dict, ship_location: dict) -> List[DetectedObject]:
     """Build API objects from XML annotations and attach YOLO confidence when matched."""
     sonar = annotation["sonar"]
     elevation_rad = math.radians(sonar["elevation"])
@@ -16,8 +16,8 @@ def extract_detections(result, annotation: dict) -> List[DetectedObject]:
     local_x = horizontal_range * math.sin(azimuth_rad)
     local_z = -horizontal_range * math.cos(azimuth_rad)
     object_latitude, object_longitude = vincenty_direct(
-        config.DEMO_SHIP_LATITUDE,
-        config.DEMO_SHIP_LONGITUDE,
+        ship_location["latitude"],
+        ship_location["longitude"],
         sonar["azimuth"],
         horizontal_range,
     )

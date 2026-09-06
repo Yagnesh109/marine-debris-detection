@@ -4,8 +4,8 @@ export default function UploadHeader({ onReset, disabled }) {
       <div>
         <h2 className="upload-title">Sonar Image Analysis</h2>
         <p className="upload-subtitle">
-          Upload a .bmp side-scan sonar image. It is preprocessed and then
-          automatically analyzed by the YOLO model.
+          Upload a side-scan sonar image. It is preprocessed and then analyzed
+          by the model to detect objects.
         </p>
       </div>
       <button

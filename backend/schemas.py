@@ -53,6 +53,9 @@ class DetectionResponse(BaseModel):
     message: str
     image_id: str
     objects_detected: List[DetectedObject]
+    ship_latitude: Optional[float] = None
+    ship_longitude: Optional[float] = None
+    ship_water_body: Optional[str] = None
     annotated_image_url: Optional[str] = None
 
 

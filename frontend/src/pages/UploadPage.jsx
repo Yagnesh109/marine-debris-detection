@@ -107,28 +107,46 @@ export default function UploadPage({
 
   return (
     <div className="upload-page">
-      <div className="upload-inner">
-        <UploadHeader onReset={handleUploadOtherImage} disabled={isBusy} />
-        <UploadToolbar
-          fileInputRef={fileInputRef}
-          selectedFile={selectedFile}
-          selectedXmlFile={selectedXmlFile}
-          onFileChange={handleFileChange}
-          onXmlChange={handleXmlChange}
-          onSubmit={handleUploadAndDetect}
-          disabled={isBusy}
-          uploading={uploading}
-          detecting={detecting}
-        />
-        <UploadStatus
-          uploading={uploading}
-          detecting={detecting}
-          error={error}
-          preprocessInfo={preprocessInfo}
-          isBusy={isBusy}
-        />
-        <ImagePreviews previewUrl={previewUrl} preprocessInfo={preprocessInfo} />
-        <DetectionResults detectionResult={detectionResult} />
+      <div className="upload-inner dashboard-layout">
+        <aside className="upload-sidebar">
+          <UploadHeader onReset={handleUploadOtherImage} disabled={isBusy} />
+          <UploadToolbar
+            fileInputRef={fileInputRef}
+            selectedFile={selectedFile}
+            selectedXmlFile={selectedXmlFile}
+            onFileChange={handleFileChange}
+            onXmlChange={handleXmlChange}
+            onSubmit={handleUploadAndDetect}
+            disabled={isBusy}
+            uploading={uploading}
+            detecting={detecting}
+          />
+          <UploadStatus
+            uploading={uploading}
+            detecting={detecting}
+            error={error}
+            preprocessInfo={preprocessInfo}
+            isBusy={isBusy}
+          />
+        </aside>
+        <main className="results-workspace">
+          <div className="workspace-heading">
+            <div>
+              <span className="eyebrow">Live analysis workspace</span>
+            </div>
+            <span className={`workspace-state${isBusy ? " is-busy" : ""}`}>
+              <span className="state-dot" />
+              {isBusy ? "Processing" : detectionResult ? "Analysis ready" : "Awaiting input"}
+            </span>
+          </div>
+          <ImagePreviews
+            apiBaseUrl={aiApiBaseUrl}
+            previewUrl={previewUrl}
+            preprocessInfo={preprocessInfo}
+            detectionResult={detectionResult}
+          />
+          <DetectionResults detectionResult={detectionResult} />
+        </main>
       </div>
     </div>
   );

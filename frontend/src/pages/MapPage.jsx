@@ -9,27 +9,6 @@ export default function MapPage({ apiBaseUrl, detectionPoints }) {
   const [selectedDetection, setSelectedDetection] = useState(null);
   const [placeName, setPlaceName] = useState("");
   const [userLocation, setUserLocation] = useState(null);
-<<<<<<< Updated upstream
-
-  const validDetections = useMemo(() => {
-    return detectionPoints.filter(
-      (detection) => detection && detection.confidence != null && detection.confidence !== undefined && Number(detection.confidence) > 0
-    );
-  }, [detectionPoints]);
-
-  const primaryDetection = useMemo(() => {
-    return validDetections.reduce((highest, detection) => {
-      if (!highest) return detection;
-      return (Number(detection.confidence) || 0) > (Number(highest.confidence) || 0)
-        ? detection
-        : highest;
-    }, null);
-  }, [validDetections]);
-
-  const mappedPoints = useMemo(() => {
-    return normalizeDetectionPoints(primaryDetection ? [primaryDetection] : []);
-  }, [primaryDetection]);
-=======
   const [routeData, setRouteData] = useState([]);
   const [loadError, setLoadError] = useState("");
   // Two exclusive views:
@@ -43,7 +22,6 @@ export default function MapPage({ apiBaseUrl, detectionPoints }) {
     }
     return normalizeGeneratedPositions(routeData);
   }, [routeData, detectionPoints, isDetectionView]);
->>>>>>> Stashed changes
 
   const handleMapClick = useCallback((coords) => {
     setSelectedDetection(null);

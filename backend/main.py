@@ -25,8 +25,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 import config
-from routers import detection, positions, preprocessing, reports, route_planning, stats
-from routers import detection, history, map_data, positions, preprocessing, reports, stats
+from routers import detection, history, map_data, positions, preprocessing, reports, route_planning, stats
 
 app = FastAPI(
     title=config.APP_NAME,

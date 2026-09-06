@@ -19,6 +19,7 @@ export default function ImagePreviews({ apiBaseUrl, previewUrl, preprocessInfo, 
       {previewUrl && (
         <div className="preview-card">
           <div className="preview-card-heading"><h3>Original input</h3><span>01</span></div>
+          <p className="preview-caption preview-caption-placeholder" aria-hidden="true">&nbsp;</p>
           <img className="preview-image" src={previewUrl} alt="Original" />
         </div>
       )}

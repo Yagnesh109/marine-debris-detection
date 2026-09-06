@@ -78,11 +78,7 @@ export default function ThreeDMapPage({ detections = [], shipLatitude, shipLongi
       ? detection
       : highest;
   }, null);
-<<<<<<< Updated upstream
-  const displayedDetections = primaryDetection ? [primaryDetection] : [];
-=======
   const primaryDetections = primaryDetection ? [primaryDetection] : [];
->>>>>>> Stashed changes
   const anchorX = primaryDetection ? Number(primaryDetection.local_x) : 0;
   const anchorZ = primaryDetection ? -Number(primaryDetection.local_z) : 0;
   const maxDepth = validDetections.reduce((maxValue, detection) => {
@@ -119,11 +115,8 @@ export default function ThreeDMapPage({ detections = [], shipLatitude, shipLongi
               : "Lat: unavailable\nLon: unavailable"}
           </Text>
         </group>
-<<<<<<< Updated upstream
-        {displayedDetections.map((detection, index) => (
-=======
+
         {primaryDetections.map((detection, index) => (
->>>>>>> Stashed changes
           <DetectionMarker
             key={`${detection.name || "object"}-${index}`}
             detection={detection}

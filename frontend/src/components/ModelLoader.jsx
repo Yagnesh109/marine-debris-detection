@@ -1,6 +1,3 @@
-import React, { useMemo, Suspense, useRef } from 'react';
-import { useGLTF } from '@react-three/drei';
-import { useFrame } from '@react-three/fiber';
 import React, { useMemo, Suspense } from 'react';
 import { Text, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';

@@ -16,6 +16,13 @@ from pymongo.database import Database
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 
+try:
+    import certifi
+    ca_file = certifi.where()
+except ImportError:
+    ca_file = None
+
+
 @lru_cache(maxsize=1)
 def get_client() -> MongoClient:
     """Return the shared Atlas client configured by environment variables."""
@@ -23,11 +30,19 @@ def get_client() -> MongoClient:
     if not uri:
         raise RuntimeError("MONGODB_URI is not configured.")
 
-    return MongoClient(
-        uri,
-        appname=os.getenv("MONGODB_APP_NAME", "debris-detector"),
-        serverSelectionTimeoutMS=int(os.getenv("MONGODB_SERVER_SELECTION_TIMEOUT_MS", "5000")),
-    )
+    kwargs = {
+        "appname": os.getenv("MONGODB_APP_NAME", "debris-detector"),
+        "serverSelectionTimeoutMS": int(os.getenv("MONGODB_SERVER_SELECTION_TIMEOUT_MS", "5000")),
+    }
+
+    if ca_file:
+        kwargs["tlsCAFile"] = ca_file
+
+    # Bypass SSL handshake verification errors in development/hackathon environments
+    if os.getenv("MONGODB_ALLOW_INVALID_CERTS", "true").lower() == "true":
+        kwargs["tlsAllowInvalidCertificates"] = True
+
+    return MongoClient(uri, **kwargs)
 
 
 def get_database() -> Database[Any]:

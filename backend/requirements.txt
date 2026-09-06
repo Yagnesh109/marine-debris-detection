@@ -5,4 +5,5 @@ pillow>=10.0
 ultralytics>=8.2
 numpy
 pymongo>=4.8
+certifi
 python-dotenv>=1.0

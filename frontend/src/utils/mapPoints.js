@@ -13,18 +13,20 @@ export function normalizeGeneratedPositions(rows = []) {
 }
 
 export function normalizeDetectionPoints(objects = []) {
-  return objects.map((object) => {
-    const latitude = Number(object.latitude);
-    const longitude = Number(object.longitude);
-    const hasCalculatedPosition = Number.isFinite(latitude) && Number.isFinite(longitude);
+  return objects
+    .filter((object) => object && object.confidence != null && object.confidence !== undefined && Number(object.confidence) > 0)
+    .map((object) => {
+      const latitude = Number(object.latitude);
+      const longitude = Number(object.longitude);
+      const hasCalculatedPosition = Number.isFinite(latitude) && Number.isFinite(longitude);
 
-    return {
-      lat: hasCalculatedPosition ? latitude : DEFAULT_LATITUDE,
-      lng: hasCalculatedPosition ? longitude : DEFAULT_LONGITUDE,
-      objectName: object.name,
-      confidence: object.confidence,
-      label: `${object.name} (${(object.confidence * 100).toFixed(1)}%)`,
-      source: hasCalculatedPosition ? "detection" : "default detection position",
-    };
-  });
+      return {
+        lat: hasCalculatedPosition ? latitude : DEFAULT_LATITUDE,
+        lng: hasCalculatedPosition ? longitude : DEFAULT_LONGITUDE,
+        objectName: object.name,
+        confidence: object.confidence,
+        label: `${object.name} (${(object.confidence * 100).toFixed(1)}%)`,
+        source: hasCalculatedPosition ? "detection" : "default detection position",
+      };
+    });
 }

@@ -3,21 +3,44 @@ export default function DetectionResults({ detectionResult }) {
 
   const detections = detectionResult.objects_detected || [];
   const hasShipPosition = Number.isFinite(Number(detectionResult.ship_latitude)) &&
-    Number.isFinite(Number(detectionResult.ship_longitude));
+    Number.isFinite(Number(detectionResult.ship_longitude)) &&
+    Number(detectionResult.ship_latitude) !== 0 &&
+    Number(detectionResult.ship_longitude) !== 0;
+  const summaryMessage = String(detectionResult.message || "")
+    .split(/\s*ship position\s*:/i)[0]
+    .trim();
   return (
     <section className="results-section">
       <h3 className="results-heading">Detection Results</h3>
-      <p className="results-summary">{detectionResult.message}</p>
+      {summaryMessage && <p className="results-summary">{summaryMessage}</p>}
 
       {hasShipPosition && (
-        <div className="ship-position-summary">
-          <strong>Demo ship position used</strong>
-          <span>{detectionResult.ship_water_body}</span>
-          <span className="mono">
-            Latitude {Number(detectionResult.ship_latitude).toFixed(6)}
+        <div
+          className="ship-position-summary"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            flexWrap: "wrap",
+            padding: "8px 12px",
+            background: "#161b22",
+            borderRadius: "6px",
+            border: "1px solid #30363d",
+            marginBottom: "16px",
+            fontSize: "13px",
+          }}
+        >
+          <strong style={{ color: "#e6edf3" }}>Ship Position:</strong>
+          {detectionResult.ship_water_body && (
+            <span style={{ color: "#58a6ff", fontWeight: 600 }}>
+              {detectionResult.ship_water_body}
+            </span>
+          )}
+          <span className="mono" style={{ color: "#8b949e" }}>
+            Latitude <strong style={{ color: "#e6edf3" }}>{Number(detectionResult.ship_latitude).toFixed(6)}</strong>
           </span>
-          <span className="mono">
-            Longitude {Number(detectionResult.ship_longitude).toFixed(6)}
+          <span className="mono" style={{ color: "#8b949e" }}>
+            Longitude <strong style={{ color: "#e6edf3" }}>{Number(detectionResult.ship_longitude).toFixed(6)}</strong>
           </span>
         </div>
       )}

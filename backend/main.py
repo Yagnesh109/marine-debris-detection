@@ -25,7 +25,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 import config
-from routers import detection, positions, preprocessing, reports, stats
+from routers import detection, positions, preprocessing, reports, route_planning, stats
 
 app = FastAPI(
     title=config.APP_NAME,
@@ -53,6 +53,7 @@ app.include_router(detection.router)
 app.include_router(reports.router)
 app.include_router(stats.router)
 app.include_router(positions.router)
+app.include_router(route_planning.router)
 
 
 @app.get("/", tags=["Health"])

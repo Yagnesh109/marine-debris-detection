@@ -35,14 +35,14 @@ const userIcon = new L.DivIcon({
   iconAnchor: [12, 12],
 });
 
-const createDotIcon = (color = "#e11d48", size = 10) =>
+const createDotIcon = (color = "#e11d48", size = 10, label = "") =>
   new L.DivIcon({
     className: "",
-    html: `
-      <div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 5px rgba(0,0,0,0.45);"></div>
-    `,
-    iconSize: [size + 4, size + 4],
-    iconAnchor: [(size + 4) / 2, (size + 4) / 2],
+    html: label
+      ? `<div style="width:24px;height:24px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:11px;font-family:sans-serif;">${label}</div>`
+      : `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 5px rgba(0,0,0,0.45);"></div>`,
+    iconSize: label ? [24, 24] : [size + 4, size + 4],
+    iconAnchor: label ? [12, 12] : [(size + 4) / 2, (size + 4) / 2],
   });
 
 const mapViews = {
@@ -144,14 +144,17 @@ const MapComponent = ({
         const decorator = L.polylineDecorator(polyline, {
           patterns: [
             {
-              offset: "10%",
-              repeat: "10%",
+              offset: "30px",
+              repeat: "60px",
               symbol: L.Symbol.arrowHead({
-                pixelSize: 8,
+                pixelSize: 12,
+                headAngle: 60,
                 pathOptions: {
-                  color: pathColor,
-                  fillOpacity: pathOpacity,
-                  weight: 2,
+                  color: "#ffffff",
+                  fillColor: "#388bfd",
+                  fillOpacity: 1,
+                  weight: 1.5,
+                  stroke: true,
                 },
               }),
             },
@@ -163,12 +166,23 @@ const MapComponent = ({
 
     if (showMarkers) {
       routeData.forEach((point, index) => {
+        // Do not place a duplicate marker icon over #1 if the final waypoint is the return to origin
+        if (
+          index > 0 &&
+          index === routeData.length - 1 &&
+          Math.abs(point.lat - routeData[0].lat) < 1e-5 &&
+          Math.abs(point.lng - routeData[0].lng) < 1e-5
+        ) {
+          return;
+        }
+
         const isStart = index === 0;
         const isEnd = index === routeData.length - 1;
-        const markerColor = isStart ? "#16a34a" : isEnd ? "#111827" : "#dc2626";
-        const markerSize = isStart || isEnd ? 12 : 8;
+        const markerColor = isStart ? "#16a34a" : isEnd ? "#2563eb" : "#dc2626";
+        const markerSize = isStart ? 14 : 10;
+        const stepLabel = point.step_number ? String(point.step_number) : String(index + 1);
         const marker = L.marker([point.lat, point.lng], {
-          icon: createDotIcon(markerColor, markerSize),
+          icon: createDotIcon(markerColor, markerSize, stepLabel),
         });
         const markerKey = `${point.lat}:${point.lng}:${index}`;
 

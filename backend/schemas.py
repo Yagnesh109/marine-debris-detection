@@ -92,3 +92,25 @@ class DetectionReport(BaseModel):
     file: FileInfo
     size: ImageSize
     object: List[ReportObject]
+
+
+# ── Route Optimization Schemas ───────────────────────────────────────────────
+class RouteWaypoint(BaseModel):
+    id: str
+    name: str
+    latitude: float
+    longitude: float
+    is_origin: bool = False
+    step_number: int
+
+
+class RouteOptimizationResponse(BaseModel):
+    status: str
+    message: str
+    algorithm: str
+    total_waypoints: int
+    total_distance_km: float
+    total_distance_nautical_miles: float
+    estimated_time_hours: float
+    estimated_fuel_liters: float
+    waypoints: List[RouteWaypoint]

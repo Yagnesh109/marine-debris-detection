@@ -3,6 +3,7 @@ import MapPage from "./MapPage";
 import ThreeDMapPage from "./ThreeDMapPage";
 import AnnotatedImagePage from "./AnnotatedImagePage";
 import HistoryPage from "./HistoryPage";
+import RouteOptimizationPage from "./RouteOptimizationPage";
 
 export default function PageContent({
   activeTab,
@@ -29,7 +30,7 @@ export default function PageContent({
       </div>
 
       {activeTab === "maps" && (
-        <MapPage apiBaseUrl={apiBaseUrl} refreshKey={0} detectionPoints={detections} />
+        <MapPage apiBaseUrl={apiBaseUrl} detectionPoints={detections} />
       )}
       {activeTab === "3d-map" && (
         <ThreeDMapPage
@@ -46,6 +47,9 @@ export default function PageContent({
         />
       )}
       {activeTab === "history" && <HistoryPage />}
+      {activeTab === "route-optimization" && (
+        <RouteOptimizationPage apiBaseUrl={apiBaseUrl} />
+      )}
     </>
   );
 }

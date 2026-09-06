@@ -1,13 +1,16 @@
 import math
-from typing import List
+from typing import List, Optional
 
 from schemas import BoundingBox, DetectedObject
 import config
 from position import vincenty_direct
 
 
-def extract_detections(result, annotation: dict, ship_location: dict) -> List[DetectedObject]:
+def extract_detections(result, annotation: dict, ship_location: Optional[dict] = None) -> List[DetectedObject]:
     """Build API objects from XML annotations and attach YOLO confidence when matched."""
+    if ship_location is None:
+        ship_location = config.random_ship_location()
+
     sonar = annotation["sonar"]
     elevation_rad = math.radians(sonar["elevation"])
     horizontal_range = sonar["range"] * math.cos(elevation_rad)

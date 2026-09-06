@@ -69,15 +69,19 @@ function OceanSurface() {
 
 export default function ThreeDMapPage({ detections = [], shipLatitude, shipLongitude }) {
   const [selectedObj, setSelectedObj] = useState(null);
-  const primaryDetection = detections.reduce((highest, detection) => {
+  const validDetections = detections.filter(
+    (detection) => detection && detection.confidence != null && detection.confidence !== undefined && Number(detection.confidence) > 0
+  );
+  const primaryDetection = validDetections.reduce((highest, detection) => {
     if (!highest) return detection;
     return (Number(detection.confidence) || 0) > (Number(highest.confidence) || 0)
       ? detection
       : highest;
   }, null);
+  const displayedDetections = primaryDetection ? [primaryDetection] : [];
   const anchorX = primaryDetection ? Number(primaryDetection.local_x) : 0;
   const anchorZ = primaryDetection ? -Number(primaryDetection.local_z) : 0;
-  const maxDepth = detections.reduce((maxValue, detection) => {
+  const maxDepth = validDetections.reduce((maxValue, detection) => {
     const depth = Number(detection.depth);
     return Number.isFinite(depth) ? Math.max(maxValue, depth) : maxValue;
   }, 40);
@@ -111,7 +115,7 @@ export default function ThreeDMapPage({ detections = [], shipLatitude, shipLongi
               : "Lat: unavailable\nLon: unavailable"}
           </Text>
         </group>
-        {detections.map((detection, index) => (
+        {displayedDetections.map((detection, index) => (
           <DetectionMarker
             key={`${detection.name || "object"}-${index}`}
             detection={detection}

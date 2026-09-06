@@ -20,6 +20,10 @@ export default function SidePanel({
   placeName = "",            // reverse-geocoded name
   routeInfo = null,           // { waypoints: number, distance?: string }
   userLocation = null,        // { lat, lng } from GPS
+  optimalRoute = null,        // Greedy + 2-Opt route object
+  onToggleOptimalRoute = null, // callback to fetch/clear optimal route
+  loadingRoute = false,       // loading spinner indicator
+  showEmptyPlaceholders = true, // set to false to hide empty placeholder sections
   children,                   // slot for extra content
   className = "",
   style = {},
@@ -73,7 +77,7 @@ export default function SidePanel({
               color: "#e6edf3",
             }}
           >
-            Map Info
+            Map Info & Optimization
           </h2>
         )}
         <button
@@ -133,29 +137,32 @@ export default function SidePanel({
             gap: 20,
           }}
         >
+
           {/* ======= SECTION: Coordinates ======= */}
-          <Section title="Coordinates" icon="pin">
-            {coordinates ? (
-              <>
-                <CoordRow
-                  label="Latitude"
-                  value={coordinates.lat.toFixed(6)}
-                  onCopy={() => copyToClipboard(coordinates.lat.toFixed(6))}
-                  copied={copiedLabel === coordinates.lat.toFixed(6)}
-                />
-                <CoordRow
-                  label="Longitude"
-                  value={coordinates.lng.toFixed(6)}
-                  onCopy={() => copyToClipboard(coordinates.lng.toFixed(6))}
-                  copied={copiedLabel === coordinates.lng.toFixed(6)}
-                />
-              </>
-            ) : (
-              <p style={styles.emptyText}>
-                Click on the map to get coordinates
-              </p>
-            )}
-          </Section>
+          {(coordinates || showEmptyPlaceholders) && (
+            <Section title="Coordinates" icon="pin">
+              {coordinates ? (
+                <>
+                  <CoordRow
+                    label="Latitude"
+                    value={coordinates.lat.toFixed(6)}
+                    onCopy={() => copyToClipboard(coordinates.lat.toFixed(6))}
+                    copied={copiedLabel === coordinates.lat.toFixed(6)}
+                  />
+                  <CoordRow
+                    label="Longitude"
+                    value={coordinates.lng.toFixed(6)}
+                    onCopy={() => copyToClipboard(coordinates.lng.toFixed(6))}
+                    copied={copiedLabel === coordinates.lng.toFixed(6)}
+                  />
+                </>
+              ) : (
+                <p style={styles.emptyText}>
+                  Click on the map to get coordinates
+                </p>
+              )}
+            </Section>
+          )}
 
           {/* ======= SECTION: Location Name ======= */}
           {detection && (
@@ -174,22 +181,24 @@ export default function SidePanel({
           )}
 
           {/* ======= SECTION: Location Name ======= */}
-          <Section title="Location" icon="map">
-            {placeName && placeName !== "Finding place..." ? (
-              <p style={{ margin: 0, fontSize: 13, color: "#c9d1d9", lineHeight: 1.5 }}>
-                {placeName}
-              </p>
-            ) : placeName === "Finding place..." ? (
-              <div style={styles.loadingRow}>
-                <div style={styles.spinner} />
-                <span>Finding place...</span>
-              </div>
-            ) : (
-              <p style={styles.emptyText}>
-                Click on the map to see location name
-              </p>
-            )}
-          </Section>
+          {(placeName || showEmptyPlaceholders) && (
+            <Section title="Location" icon="map">
+              {placeName && placeName !== "Finding place..." ? (
+                <p style={{ margin: 0, fontSize: 13, color: "#c9d1d9", lineHeight: 1.5 }}>
+                  {placeName}
+                </p>
+              ) : placeName === "Finding place..." ? (
+                <div style={styles.loadingRow}>
+                  <div style={styles.spinner} />
+                  <span>Finding place...</span>
+                </div>
+              ) : (
+                <p style={styles.emptyText}>
+                  Click on the map to see location name
+                </p>
+              )}
+            </Section>
+          )}
 
           {/* ======= SECTION: User Location (GPS) ======= */}
           {userLocation && (
@@ -210,7 +219,7 @@ export default function SidePanel({
           )}
 
           {/* ======= SECTION: Route Info ======= */}
-          {routeInfo && routeInfo.waypoints >= 2 && (
+          {routeInfo && routeInfo.waypoints >= 2 && !optimalRoute && (
             <Section title="Route" icon="route">
               <div style={styles.statRow}>
                 <span style={styles.statLabel}>Waypoints</span>

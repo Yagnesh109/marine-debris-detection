@@ -4,33 +4,30 @@ import SidePanel from "./SidePanel";
 import "./MapPage.css";
 import { normalizeDetectionPoints, normalizeGeneratedPositions } from "../utils/mapPoints";
 
-export default function MapPage({ apiBaseUrl, refreshKey, detectionPoints }) {
+export default function MapPage({ apiBaseUrl, detectionPoints }) {
   const [clickedCoords, setClickedCoords] = useState(null);
   const [selectedDetection, setSelectedDetection] = useState(null);
   const [placeName, setPlaceName] = useState("");
   const [userLocation, setUserLocation] = useState(null);
-  const [routeData, setRouteData] = useState([]);
-  const [loadError, setLoadError] = useState("");
+
+  const validDetections = useMemo(() => {
+    return detectionPoints.filter(
+      (detection) => detection && detection.confidence != null && detection.confidence !== undefined && Number(detection.confidence) > 0
+    );
+  }, [detectionPoints]);
+
   const primaryDetection = useMemo(() => {
-    return detectionPoints.reduce((highest, detection) => {
+    return validDetections.reduce((highest, detection) => {
       if (!highest) return detection;
       return (Number(detection.confidence) || 0) > (Number(highest.confidence) || 0)
         ? detection
         : highest;
     }, null);
-  }, [detectionPoints]);
-
-  // Two exclusive views:
-  //   - detections present -> show ONLY the objects found in the uploaded image
-  //   - otherwise          -> show no generated dataset points
-  const isDetectionView = normalizeDetectionPoints(detectionPoints).length > 0;
+  }, [validDetections]);
 
   const mappedPoints = useMemo(() => {
-    if (isDetectionView) {
-      return normalizeDetectionPoints(primaryDetection ? [primaryDetection] : []);
-    }
-    return normalizeGeneratedPositions(routeData);
-  }, [routeData, primaryDetection, isDetectionView]);
+    return normalizeDetectionPoints(primaryDetection ? [primaryDetection] : []);
+  }, [primaryDetection]);
 
   const handleMapClick = useCallback((coords) => {
     setSelectedDetection(null);
@@ -41,47 +38,6 @@ export default function MapPage({ apiBaseUrl, refreshKey, detectionPoints }) {
     setSelectedDetection(point);
     setClickedCoords({ lat: point.lat, lng: point.lng });
   }, []);
-
-  useEffect(() => {
-    // Generated dataset positions remain available for the existing map flow,
-    // but are not loaded unless a caller supplies a refresh key.
-    if (!refreshKey) {
-      setRouteData([]);
-      return;
-    }
-
-    const controller = new AbortController();
-
-    const fetchGeneratedPositions = async () => {
-      try {
-        setLoadError("");
-        const res = await fetch(`${apiBaseUrl}/api/geotag-calculated`, {
-          signal: controller.signal,
-        });
-
-        if (res.status === 404) {
-          setRouteData([]);
-          return;
-        }
-
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.message || "Failed to load generated positions");
-        }
-
-        setRouteData(normalizeGeneratedPositions(data));
-      } catch (err) {
-        if (err.name !== "AbortError") {
-          setLoadError(err.message);
-          setRouteData([]);
-        }
-      }
-    };
-
-    fetchGeneratedPositions();
-
-    return () => controller.abort();
-  }, [apiBaseUrl, refreshKey]);
 
   useEffect(() => {
     if (!clickedCoords) return;
@@ -136,15 +92,8 @@ export default function MapPage({ apiBaseUrl, refreshKey, detectionPoints }) {
           userLocation={userLocation}
           routeInfo={{
             waypoints: mappedPoints.length,
-            downloadUrl: `${apiBaseUrl}/api/download-geotag-calculated`,
           }}
-        >
-          {loadError && (
-            <p style={{ margin: 0, color: "#ff7b72", fontSize: 13 }}>
-              {loadError}
-            </p>
-          )}
-        </SidePanel>
+        />
       </div>
     </div>
   );

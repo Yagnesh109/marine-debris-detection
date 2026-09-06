@@ -1,5 +1,6 @@
-import React, { useMemo, Suspense } from 'react';
+import React, { useMemo, Suspense, useRef } from 'react';
 import { useGLTF } from '@react-three/drei';
+import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { AI_API_BASE_URL } from '../config/api';
 
@@ -61,7 +62,7 @@ export function FallbackCube({ size = 8, color = '#ffaa00' }) {
  * Renders only the requested backend model; failures render nothing.
  */
 const MODEL_TARGET_SIZE = {
-  'human body': 24,
+  'human body': 6,
   'ghost net': 24,
   'ship': 32,
   'ship wreck': 32,

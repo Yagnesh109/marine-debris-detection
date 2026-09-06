@@ -32,7 +32,12 @@ export default function PageContent({
         <MapPage apiBaseUrl={apiBaseUrl} refreshKey={0} detectionPoints={detections} />
       )}
       {activeTab === "3d-map" && (
-        <ThreeDMapPage detections={detections} onNavigate={onNavigate} />
+        <ThreeDMapPage
+          detections={detections}
+          shipLatitude={detectionResult?.ship_latitude}
+          shipLongitude={detectionResult?.ship_longitude}
+          onNavigate={onNavigate}
+        />
       )}
       {activeTab === "annotated-image" && (
         <AnnotatedImagePage

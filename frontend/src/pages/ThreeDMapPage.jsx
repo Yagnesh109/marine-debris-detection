@@ -11,23 +11,32 @@ function DetectionDetails({ selectedObj, onClose }) {
 
   return (
     <div className="three-d-details">
-      <h3>Object: {selectedObj.detection.name || "Unknown"}</h3>
-      <p><strong>Confidence:</strong> {((selectedObj.detection.confidence || 0) * 100).toFixed(1)}%</p>
-      <p><strong>Depth:</strong> {selectedObj.geoInfo.depth.toFixed(1)} m</p>
-      <p><strong>Lat:</strong> {selectedObj.geoInfo.latitude.toFixed(6)}</p>
-      <p><strong>Lon:</strong> {selectedObj.geoInfo.longitude.toFixed(6)}</p>
-      <button type="button" onClick={onClose}>Close</button>
-    </div>
-  );
-}
-
-function ViewerLegend({ onNavigate }) {
-  return (
-    <div className="three-d-legend">
-      <div className="three-d-depth-legend">
-        <span className="shallow">■</span> Shallow
-        <span className="medium">■</span> Medium
-        <span className="deep">■</span> Deep
+      <div className="three-d-details-header">
+        <div>
+          <span className="three-d-details-eyebrow">Detected object</span>
+          <h3>{selectedObj.detection.name || "Unknown"}</h3>
+        </div>
+        <button type="button" className="three-d-details-close" onClick={onClose} aria-label="Close object details">
+          ×
+        </button>
+      </div>
+      <div className="three-d-details-confidence">
+        <span>Confidence</span>
+        <strong>{((selectedObj.detection.confidence || 0) * 100).toFixed(1)}%</strong>
+      </div>
+      <div className="three-d-details-grid">
+        <div className="three-d-detail-row">
+          <span>Depth</span>
+          <strong>{selectedObj.geoInfo.depth.toFixed(1)} m</strong>
+        </div>
+        <div className="three-d-detail-row">
+          <span>Latitude</span>
+          <strong>{selectedObj.geoInfo.latitude.toFixed(6)}</strong>
+        </div>
+        <div className="three-d-detail-row">
+          <span>Longitude</span>
+          <strong>{selectedObj.geoInfo.longitude.toFixed(6)}</strong>
+        </div>
       </div>
     </div>
   );
@@ -58,7 +67,7 @@ function OceanSurface() {
   );
 }
 
-export default function ThreeDMapPage({ detections = [], onNavigate }) {
+export default function ThreeDMapPage({ detections = [], shipLatitude, shipLongitude }) {
   const [selectedObj, setSelectedObj] = useState(null);
   const primaryDetection = detections.reduce((highest, detection) => {
     if (!highest) return detection;
@@ -76,6 +85,7 @@ export default function ThreeDMapPage({ detections = [], onNavigate }) {
   const seabedThickness = Math.max(300, seabedDepth * 3 + 120);
   const seabedY = -(seabedDepth + seabedThickness / 2);
   const rovY = -Math.max(2, seabedDepth * 0.5);
+  const rovPosition = [-30, rovY, 0];
 
   return (
     <div className="three-d-page">
@@ -90,10 +100,15 @@ export default function ThreeDMapPage({ detections = [], onNavigate }) {
           <meshStandardMaterial color="#081b27" roughness={1} />
         </mesh>
         <Terrain anchorX={anchorX} anchorZ={anchorZ} depth={seabedDepth} />
-        <group position={[-18, rovY, 0]}>
+        <group position={rovPosition}>
           <ROVModel scale={1.25} />
-          <Text position={[16, 12, 0]} fontSize={4} color="#ffd166" anchorX="left" anchorY="middle" outlineWidth={0.2} outlineColor="#06283d">
+          <Text position={[16, 20, 0]} fontSize={4} color="#ffd166" anchorX="left" anchorY="middle" outlineWidth={0.2} outlineColor="#06283d">
             ROV
+          </Text>
+          <Text position={[16, 14, 0]} fontSize={2.2} color="#d9f7ff" anchorX="left" anchorY="middle" outlineWidth={0.12} outlineColor="#06283d" lineHeight={1.2}>
+            {Number.isFinite(Number(shipLatitude)) && Number.isFinite(Number(shipLongitude))
+              ? `Lat: ${Number(shipLatitude).toFixed(4)}\nLon: ${Number(shipLongitude).toFixed(4)}`
+              : "Lat: unavailable\nLon: unavailable"}
           </Text>
         </group>
         {detections.map((detection, index) => (
@@ -103,6 +118,7 @@ export default function ThreeDMapPage({ detections = [], onNavigate }) {
             seabedDepth={seabedDepth}
             anchorX={anchorX}
             anchorZ={anchorZ}
+            rovPosition={rovPosition}
             onClick={(object, geoInfo) => setSelectedObj({ detection: object, geoInfo })}
           />
         ))}
@@ -116,7 +132,6 @@ export default function ThreeDMapPage({ detections = [], onNavigate }) {
         />
       </Canvas>
       <DetectionDetails selectedObj={selectedObj} onClose={() => setSelectedObj(null)} />
-      <ViewerLegend onNavigate={onNavigate} />
       <div className="three-d-visualization-note" role="note">
         3D visualization for reference only. This is a visual representation, not a physical or geographic measurement.
       </div>

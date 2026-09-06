@@ -110,16 +110,97 @@
 
 .three-d-details {
   right: 20px;
-  min-width: 200px;
+  width: min(290px, calc(100vw - 40px));
+  padding: 16px;
+  border: 1px solid rgba(115, 230, 255, 0.28);
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(4, 20, 31, 0.94), rgba(3, 10, 18, 0.88));
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.32), inset 0 1px rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+}
+
+.three-d-details-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 13px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.three-d-details-eyebrow {
+  display: block;
+  margin-bottom: 4px;
+  color: #73e6ff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .three-d-details h3 {
-  margin: 0 0 10px;
-  color: #ff4444;
+  margin: 0;
+  color: #f4fbff;
+  font-size: 21px;
+  line-height: 1.1;
+  text-transform: capitalize;
 }
 
-.three-d-details p {
-  margin: 5px 0;
+.three-d-details-close {
+  width: 28px !important;
+  height: 28px;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 50% !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #d9f7ff !important;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.three-d-details-confidence,
+.three-d-detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.three-d-details-confidence {
+  margin: 14px 0 8px;
+  padding: 9px 10px;
+  border-radius: 7px;
+  background: rgba(115, 230, 255, 0.1);
+  color: #b8d0da;
+  font-size: 12px;
+}
+
+.three-d-details-confidence strong {
+  color: #8af0cf;
+  font-size: 14px;
+}
+
+.three-d-details-grid {
+  display: grid;
+  gap: 0;
+}
+
+.three-d-detail-row {
+  padding: 9px 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  color: #91aab5;
+  font-size: 12px;
+}
+
+.three-d-detail-row:last-child {
+  border-bottom: 0;
+}
+
+.three-d-detail-row strong {
+  color: #f4fbff;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 12px;
 }
 
 .three-d-details button,

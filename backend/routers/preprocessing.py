@@ -14,6 +14,7 @@ from pathlib import Path
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
 
+from database import repository
 from schemas import PreprocessResponse
 from services import preprocessing_service
 
@@ -40,6 +41,15 @@ async def preprocess_image(
     image_id, saved_path, preprocessed_path = preprocessing_service.create_upload_session(
         original_name, content, xml_name, xml_content
     )
+    try:
+        repository.save_uploaded_image(
+            image_id=image_id,
+            image_name=original_name,
+            image_path=str(saved_path),
+            preprocessed_path=str(preprocessed_path),
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=f"Image database is unavailable: {exc}") from exc
     print(f"[Preprocess] Received '{original_name}' ({len(content)} bytes) -> {saved_path}")
 
     return PreprocessResponse(

@@ -31,11 +31,11 @@ function DetectionDetails({ selectedObj, onClose }) {
         </div>
         <div className="three-d-detail-row">
           <span>Latitude</span>
-          <strong>{selectedObj.geoInfo.latitude.toFixed(6)}</strong>
+          <strong>{selectedObj.geoInfo.latitude}</strong>
         </div>
         <div className="three-d-detail-row">
           <span>Longitude</span>
-          <strong>{selectedObj.geoInfo.longitude.toFixed(6)}</strong>
+          <strong>{selectedObj.geoInfo.longitude}</strong>
         </div>
       </div>
     </div>
@@ -78,7 +78,11 @@ export default function ThreeDMapPage({ detections = [], shipLatitude, shipLongi
       ? detection
       : highest;
   }, null);
+<<<<<<< Updated upstream
   const displayedDetections = primaryDetection ? [primaryDetection] : [];
+=======
+  const primaryDetections = primaryDetection ? [primaryDetection] : [];
+>>>>>>> Stashed changes
   const anchorX = primaryDetection ? Number(primaryDetection.local_x) : 0;
   const anchorZ = primaryDetection ? -Number(primaryDetection.local_z) : 0;
   const maxDepth = validDetections.reduce((maxValue, detection) => {
@@ -111,11 +115,15 @@ export default function ThreeDMapPage({ detections = [], shipLatitude, shipLongi
           </Text>
           <Text position={[16, 14, 0]} fontSize={2.2} color="#d9f7ff" anchorX="left" anchorY="middle" outlineWidth={0.12} outlineColor="#06283d" lineHeight={1.2}>
             {Number.isFinite(Number(shipLatitude)) && Number.isFinite(Number(shipLongitude))
-              ? `Lat: ${Number(shipLatitude).toFixed(4)}\nLon: ${Number(shipLongitude).toFixed(4)}`
+              ? `Lat: ${shipLatitude}\nLon: ${shipLongitude}`
               : "Lat: unavailable\nLon: unavailable"}
           </Text>
         </group>
+<<<<<<< Updated upstream
         {displayedDetections.map((detection, index) => (
+=======
+        {primaryDetections.map((detection, index) => (
+>>>>>>> Stashed changes
           <DetectionMarker
             key={`${detection.name || "object"}-${index}`}
             detection={detection}

@@ -1,32 +1,114 @@
+import { useEffect, useMemo, useState } from "react";
 import "./HistoryPage.css";
 
-const historyItems = [
-  ["plane", "84.9%", "18.98017195", "72.78020487", "2026-09-04", "18:42:16", "(239, 1395) - (331, 1475)"],
-  ["ship wreck", "91.6%", "18.922000", "72.83484242", "2026-09-04", "18:37:09", "(121, 108) - (396, 359)"],
-  ["ghost net", "76.3%", "19.076090", "72.877426", "2026-09-03", "16:21:44", "(485, 224) - (702, 410)"],
-  ["human body", "88.1%", "15.490930", "73.827850", "2026-09-02", "14:08:31", "(88, 316) - (241, 548)"],
-  ["plane", "79.8%", "19.017800", "73.014200", "2026-09-01", "11:52:03", "(305, 186) - (522, 401)"],
-  ["ship", "93.2%", "18.520430", "73.856744", "2026-08-31", "09:44:27", "(142, 92) - (410, 338)"],
-  ["net", "81.7%", "16.705000", "74.243300", "2026-08-30", "17:15:52", "(268, 512) - (478, 690)"],
-  ["wreck", "87.5%", "17.686816", "74.006000", "2026-08-29", "13:29:18", "(52, 204) - (286, 455)"],
-  ["plane wreck", "74.6%", "19.218330", "72.978090", "2026-08-28", "12:06:40", "(604, 128) - (842, 337)"],
-  ["human body", "89.4%", "15.299326", "74.124000", "2026-08-27", "10:33:25", "(190, 402) - (354, 628)"],
-  ["ghost net", "78.2%", "18.989400", "73.117500", "2026-08-26", "15:48:11", "(418, 275) - (633, 489)"],
-  ["ship", "95.1%", "18.408800", "76.560400", "2026-08-25", "08:19:56", "(108, 154) - (390, 386)"],
-];
+const formatDate = (value) => {
+  const date = value && new Date(value);
+  return date && !Number.isNaN(date.getTime()) ? date.toLocaleDateString() : "-";
+};
 
-export default function HistoryPage() {
+const formatTime = (value) => {
+  const date = value && new Date(value);
+  return date && !Number.isNaN(date.getTime()) ? date.toLocaleTimeString([], { hour12: false }) : "-";
+};
+
+const formatCoordinate = (value) => Number.isFinite(Number(value)) ? Number(value).toFixed(6) : "-";
+
+const formatBoundingBox = (box = {}) => {
+  const values = [box.xmin, box.ymin, box.xmax, box.ymax];
+  return values.every((value) => value !== null && value !== undefined)
+    ? `(${box.xmin}, ${box.ymin}) - (${box.xmax}, ${box.ymax})`
+    : "-";
+};
+
+export default function HistoryPage({ apiBaseUrl }) {
+  const [historyItems, setHistoryItems] = useState([]);
+  const [selectedDate, setSelectedDate] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [refreshToken, setRefreshToken] = useState(0);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch(`${apiBaseUrl}/api/history`, { signal: controller.signal })
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || "Unable to load detection history.");
+        setHistoryItems(Array.isArray(data) ? data : []);
+      })
+      .catch((requestError) => {
+        if (requestError.name !== "AbortError") {
+          setError(requestError.message);
+          setHistoryItems([]);
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+    return () => controller.abort();
+  }, [apiBaseUrl, refreshToken]);
+
+  const visibleItems = useMemo(() => (
+    selectedDate
+      ? historyItems.filter((item) => item.date?.slice(0, 10) === selectedDate)
+      : historyItems
+  ), [historyItems, selectedDate]);
+  const confidences = visibleItems.map((item) => Number(item.confidence)).filter(Number.isFinite);
+  const averageConfidence = confidences.length
+    ? ((confidences.reduce((total, confidence) => total + confidence, 0) / confidences.length) * 100).toFixed(1)
+    : "0.0";
+  const highestConfidence = confidences.length ? (Math.max(...confidences) * 100).toFixed(1) : "0.0";
+
   return (
     <main className="history-page">
       <div className="history-inner">
         <header className="history-header">
           <h1>Detection History</h1>
-          <p>Recent debris detections and their analysis details.</p>
+          <div className="history-status"><span /> Database archive</div>
         </header>
 
-        <div className="history-filter-row">
-          <label htmlFor="history-date">Date</label>
-          <input id="history-date" className="history-filter" type="date" defaultValue="2026-09-04" />
+        <section className="history-summary" aria-label="Detection summary">
+          <div className="history-summary-card history-summary-card-primary">
+            <span className="history-summary-label">Total detections</span>
+            <strong>{visibleItems.length}</strong>
+            <span className="history-summary-note">Uploaded image results</span>
+          </div>
+          <div className="history-summary-card">
+            <span className="history-summary-label">Average confidence</span>
+            <strong>{averageConfidence}%</strong>
+            <span className="history-summary-note">Model certainty</span>
+          </div>
+          <div className="history-summary-card">
+            <span className="history-summary-label">Best confidence</span>
+            <strong>{highestConfidence}%</strong>
+            <span className="history-summary-note">Highest database result</span>
+          </div>
+        </section>
+
+        <div className="history-toolbar">
+          <div>
+            <span className="history-section-title">Recent activity</span>
+            <span className="history-section-subtitle">Results stored in MongoDB Atlas</span>
+          </div>
+          <label htmlFor="history-date">
+            <span>Date filter</span>
+            <input
+              id="history-date"
+              className="history-filter"
+              type="date"
+              value={selectedDate}
+              onChange={(event) => setSelectedDate(event.target.value)}
+            />
+          </label>
+          <button
+            type="button"
+            className="history-refresh"
+            onClick={() => setRefreshToken((token) => token + 1)}
+            disabled={loading}
+            title="Refresh detection history"
+          >
+            <span aria-hidden="true">↻</span>
+            {loading ? "Refreshing..." : "Refresh"}
+          </button>
         </div>
 
         <div className="history-table-scroll">
@@ -40,18 +122,27 @@ export default function HistoryPage() {
                 <th>Date</th>
                 <th>Timestamp</th>
                 <th>Bounding Box (xmin, ymin - xmax, ymax)</th>
+                <th>Image ID</th>
+                <th>Image Name</th>
               </tr>
             </thead>
             <tbody>
-              {historyItems.map((item, index) => (
-                <tr key={`${item[0]}-${index}`}>
-                  <td>{item[0]}</td>
-                  <td><span className="history-confidence">{item[1]}</span></td>
-                  <td className="history-mono">{item[2]}</td>
-                  <td className="history-mono">{item[3]}</td>
-                  <td className="history-mono">{item[4]}</td>
-                  <td className="history-mono">{item[5]}</td>
-                  <td className="history-mono">{item[6]}</td>
+              {loading && <tr><td className="history-empty" colSpan="9">Loading database history...</td></tr>}
+              {!loading && error && <tr><td className="history-empty history-error" colSpan="9">{error}</td></tr>}
+              {!loading && !error && visibleItems.length === 0 && (
+                <tr><td className="history-empty" colSpan="9">No uploaded image detections found.</td></tr>
+              )}
+              {!loading && !error && visibleItems.map((item) => (
+                <tr key={item.predicted_id || `${item.image_id}-${item.object}-${item.timestamp}`}>
+                  <td>{item.object}</td>
+                  <td><span className="history-confidence">{(Number(item.confidence || 0) * 100).toFixed(1)}%</span></td>
+                  <td className="history-mono">{formatCoordinate(item.latitude)}</td>
+                  <td className="history-mono">{formatCoordinate(item.longitude)}</td>
+                  <td className="history-mono">{formatDate(item.date)}</td>
+                  <td className="history-mono">{formatTime(item.timestamp)}</td>
+                  <td className="history-mono">{formatBoundingBox(item.bounding_box)}</td>
+                  <td className="history-mono history-id">{item.image_id || "-"}</td>
+                  <td>{item.image_name || "-"}</td>
                 </tr>
               ))}
             </tbody>

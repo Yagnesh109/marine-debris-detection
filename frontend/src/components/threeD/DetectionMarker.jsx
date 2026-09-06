@@ -197,7 +197,7 @@ export default function DetectionMarker({ detection, seabedDepth = 40, anchorX =
         depthOffset={-1}
         lineHeight={1.2}
       >
-        {`Lat: ${Number(detection.latitude).toFixed(4)}\nLon: ${Number(detection.longitude).toFixed(4)}`}
+        {`Lat: ${detection.latitude}\nLon: ${detection.longitude}`}
       </Text>
       <mesh position={[12, 12, 0]} rotation={[0, 0, Math.PI / 2]}>
         <cylinderGeometry args={[0.14, 0.14, 24, 8]} />

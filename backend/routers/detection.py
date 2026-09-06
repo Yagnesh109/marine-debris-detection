@@ -20,6 +20,7 @@ from fastapi import APIRouter, HTTPException
 import config
 import session_store
 
+from database import repository
 from schemas import DetectionResponse
 from services import detection_service, geotag_service, yolo_service
 
@@ -277,6 +278,16 @@ async def detect_objects(image_id: str):
     # --------------------------------------------------
     # Response message
     # --------------------------------------------------
+    detection_documents = [obj.model_dump() for obj in detected_objects]
+    session_store.save_detections(image_id, detection_documents)
+    try:
+        repository.save_detection_results(
+            image_id=image_id,
+            annotation=session["annotation"],
+            detections=detection_documents,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=f"Detection database is unavailable: {exc}") from exc
 
     message = (
         f"{len(detected_objects)} object(s) detected."

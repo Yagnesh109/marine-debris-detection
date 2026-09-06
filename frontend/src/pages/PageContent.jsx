@@ -46,10 +46,14 @@ export default function PageContent({
           imageUrl={detectionResult?.annotated_image_url}
         />
       )}
+<<<<<<< Updated upstream
       {activeTab === "history" && <HistoryPage />}
       {activeTab === "route-optimization" && (
         <RouteOptimizationPage apiBaseUrl={apiBaseUrl} />
       )}
+=======
+      {activeTab === "history" && <HistoryPage apiBaseUrl={apiBaseUrl} />}
+>>>>>>> Stashed changes
     </>
   );
 }

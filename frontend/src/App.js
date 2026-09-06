@@ -8,12 +8,31 @@ import { downloadReport } from './utils/downloadReport';
 function App() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [detections, setDetections] = useState([]);
+  const [databaseDetections, setDatabaseDetections] = useState([]);
   const [detectionResult, setDetectionResult] = useState(null);
   const [showAnalysisToast, setShowAnalysisToast] = useState(false);
+
+  const loadMapData = () => {
+    return fetch(`${API_BASE_URL}/api/map-data`)
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || "Unable to load map data.");
+        setDatabaseDetections(Array.isArray(data.detections) ? data.detections : []);
+      })
+      .catch((error) => {
+        console.error("Map data loading failed:", error);
+        setDatabaseDetections([]);
+      });
+  };
+
+  useEffect(() => {
+    loadMapData();
+  }, []);
 
   const handleDetectionComplete = (result) => {
     setDetectionResult(result);
     setDetections(result?.objects_detected || []);
+    loadMapData();
     setShowAnalysisToast(Boolean(result));
   };
 
@@ -45,7 +64,7 @@ function App() {
           activeTab={activeTab}
           aiApiBaseUrl={AI_API_BASE_URL}
           apiBaseUrl={API_BASE_URL}
-          detections={detections}
+          detections={databaseDetections}
           detectionResult={detectionResult}
           onDetectionComplete={handleDetectionComplete}
           onNavigate={setActiveTab}

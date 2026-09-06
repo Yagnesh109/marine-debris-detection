@@ -26,6 +26,7 @@ from fastapi.staticfiles import StaticFiles
 
 import config
 from routers import detection, positions, preprocessing, reports, route_planning, stats
+from routers import detection, history, map_data, positions, preprocessing, reports, stats
 
 app = FastAPI(
     title=config.APP_NAME,
@@ -54,6 +55,8 @@ app.include_router(reports.router)
 app.include_router(stats.router)
 app.include_router(positions.router)
 app.include_router(route_planning.router)
+app.include_router(history.router)
+app.include_router(map_data.router)
 
 
 @app.get("/", tags=["Health"])

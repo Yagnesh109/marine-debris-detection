@@ -9,6 +9,7 @@ export default function MapPage({ apiBaseUrl, detectionPoints }) {
   const [selectedDetection, setSelectedDetection] = useState(null);
   const [placeName, setPlaceName] = useState("");
   const [userLocation, setUserLocation] = useState(null);
+<<<<<<< Updated upstream
 
   const validDetections = useMemo(() => {
     return detectionPoints.filter(
@@ -28,6 +29,21 @@ export default function MapPage({ apiBaseUrl, detectionPoints }) {
   const mappedPoints = useMemo(() => {
     return normalizeDetectionPoints(primaryDetection ? [primaryDetection] : []);
   }, [primaryDetection]);
+=======
+  const [routeData, setRouteData] = useState([]);
+  const [loadError, setLoadError] = useState("");
+  // Two exclusive views:
+  //   - detections present -> show ONLY the objects found in the uploaded image
+  //   - otherwise          -> show no generated dataset points
+  const isDetectionView = normalizeDetectionPoints(detectionPoints).length > 0;
+
+  const mappedPoints = useMemo(() => {
+    if (isDetectionView) {
+      return normalizeDetectionPoints(detectionPoints);
+    }
+    return normalizeGeneratedPositions(routeData);
+  }, [routeData, detectionPoints, isDetectionView]);
+>>>>>>> Stashed changes
 
   const handleMapClick = useCallback((coords) => {
     setSelectedDetection(null);

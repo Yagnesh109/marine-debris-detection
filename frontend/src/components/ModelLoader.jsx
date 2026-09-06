@@ -1,6 +1,8 @@
 import React, { useMemo, Suspense, useRef } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
+import React, { useMemo, Suspense } from 'react';
+import { Text, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { AI_API_BASE_URL } from '../config/api';
 
@@ -9,7 +11,9 @@ import { AI_API_BASE_URL } from '../config/api';
  * These files are served by the FastAPI backend from backend/3dmodels.
  */
 const MODEL_BASE_URL = AI_API_BASE_URL.replace(/\/$/, '');
-const modelUrl = (filename) => `${MODEL_BASE_URL}/3dmodels/${encodeURIComponent(filename)}`;
+// Bump this value whenever a GLB is replaced so Drei/browser caches fetch the new asset.
+const MODEL_ASSET_VERSION = '20260906-plane-v3';
+const modelUrl = (filename) => `${MODEL_BASE_URL}/3dmodels/${encodeURIComponent(filename)}?v=${MODEL_ASSET_VERSION}`;
 const MODEL_MAP = {
   'human body': modelUrl('human body.glb'),
   'ghost net': modelUrl('ghost net.glb'),
@@ -44,16 +48,30 @@ export function FallbackSphere({ size = 2, color = '#ffaa00' }) {
   );
 }
 
-export function FallbackCube({ size = 8, color = '#ffaa00' }) {
+export function FallbackCube({ size = 8, color = '#ffaa00', label = '3D Model not available' }) {
   return (
-    <mesh>
-      <boxGeometry args={[size, size, size]} />
-      <meshStandardMaterial
-        color={color}
-        emissive={color}
-        emissiveIntensity={0.35}
-      />
-    </mesh>
+    <group>
+      <mesh>
+        <boxGeometry args={[size, size, size]} />
+        <meshStandardMaterial
+          color={color}
+          emissive={color}
+          emissiveIntensity={0.35}
+        />
+      </mesh>
+      <Text
+        position={[0, size * 0.9, 0]}
+        fontSize={Math.max(1.4, size * 0.18)}
+        color="#ffe1a3"
+        anchorX="center"
+        anchorY="bottom"
+        outlineWidth={0.1}
+        outlineColor="#06283d"
+        depthOffset={-1}
+      >
+        {`(${label})`}
+      </Text>
+    </group>
   );
 }
 
@@ -67,8 +85,8 @@ const MODEL_TARGET_SIZE = {
   'ship': 32,
   'ship wreck': 32,
   'wreck': 32,
-  'plane': 30,
-  'plane wreck': 30,
+  'plane': 12,
+  'plane wreck': 12,
   rov: 24,
 };
 

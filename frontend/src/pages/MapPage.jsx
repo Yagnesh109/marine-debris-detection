@@ -23,6 +23,11 @@ export default function MapPage({ apiBaseUrl, detectionPoints }) {
     return normalizeGeneratedPositions(routeData);
   }, [routeData, detectionPoints, isDetectionView]);
 
+  const detectedObjects = useMemo(
+    () => normalizeDetectionPoints(detectionPoints),
+    [detectionPoints],
+  );
+
   const handleMapClick = useCallback((coords) => {
     setSelectedDetection(null);
     setClickedCoords(coords);
@@ -82,6 +87,7 @@ export default function MapPage({ apiBaseUrl, detectionPoints }) {
         <SidePanel
           coordinates={clickedCoords}
           detection={selectedDetection}
+          detections={detectedObjects}
           placeName={placeName}
           userLocation={userLocation}
           routeInfo={{

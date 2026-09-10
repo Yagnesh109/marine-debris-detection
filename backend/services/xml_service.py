@@ -48,9 +48,6 @@ def parse_annotation(xml_path: Path) -> dict[str, Any]:
             raise ValueError("XML bounding-box values must be integers.") from exc
         objects.append({"name": name, "bndbox": bbox})
 
-    if not objects:
-        raise ValueError("XML must contain at least one object.")
-
     file_node = root.find("file")
     return {
         "sonar": sonar_data,
